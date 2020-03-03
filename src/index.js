@@ -13,12 +13,32 @@ async function getChangelog(packageName) {
   // TODO do this better thing instead
   // https://unpkg.com/@changesets/cli@2.5.2/?meta
 
-  return fetch(`https://unpkg.com/${packageName}/CHANGELOG.md`).then(
-    response => {
-      if (response.status !== 200) throw response;
-      return response.text();
-    }
-  );
+  return fetch(`https://unpkg.com/${packageName}/?meta`)
+    .then(res => {
+      return res.json();
+    })
+    .then(({ files }) => {
+      let changelog = files.find(({ path }) => path.match(/changelog\.md/i));
+
+      if (changelog) {
+        return fetch(`https://unpkg.com/${packageName}${changelog.path}`).then(
+          response => {
+            if (response.status !== 200) throw response;
+            return {
+              status: "success",
+              changelog: response.text()
+            };
+          }
+        );
+      } else {
+        console.log("got here");
+
+        return {
+          status: "error",
+          type: "filenotfound"
+        };
+      }
+    });
 }
 
 const FailWhale = () => (
@@ -31,7 +51,7 @@ const FailWhale = () => (
   </h2>
 );
 
-const ErrorMessage = ({ type, text, nameAndVersion }) => {
+const ErrorMessage = ({ type, text, packageName }) => {
   if (type === "text") {
     return text;
   }
@@ -45,8 +65,8 @@ const ErrorMessage = ({ type, text, nameAndVersion }) => {
         </p>
         <p>
           You can check over on{" "}
-          <a href={`https://unpkg.com/browse/${nameAndVersion}/`}>unpkg</a> to
-          see if we missed it
+          <a href={`https://unpkg.com/browse/${packageName}/`}>unpkg</a> to see
+          if we missed it
         </p>
         <p>
           If we did -{" "}
@@ -57,7 +77,6 @@ const ErrorMessage = ({ type, text, nameAndVersion }) => {
       </div>
     );
   }
-  console.error("things are exteremely wrong");
   return "This is a completely unknown error";
 };
 
@@ -70,12 +89,15 @@ function App() {
   useEffect(() => {
     getChangelog(packageName)
       .then(text => {
-        updateChangelog(text);
         setLoading(false);
+        if (text.status === "error") {
+          setErrorMessage(text);
+        } else {
+          updateChangelog(text.changelog);
+        }
       })
       .catch(err => {
         setLoading(false);
-
         return err.text().then(message => {
           /*
             error text to handle:
@@ -88,15 +110,8 @@ function App() {
               type: "text",
               text: "This is a completely unknown error"
             });
-          }
-          // This happens if there is a missing package
-          else if (message.startsWith('Cannot find "')) {
-            setErrorMessage({
-              type: "filenotfound",
-              nameAndVersion: message.split(" in ")[1]
-            });
           } else {
-            setErrorMessage(message);
+            setErrorMessage({ type: "text", text: "message" });
           }
         });
       });
@@ -121,7 +136,7 @@ function App() {
         {errorMessage && (
           <div>
             <FailWhale />
-            <ErrorMessage {...errorMessage} />
+            <ErrorMessage {...errorMessage} packageName={packageName} />
           </div>
         )}
         <div
