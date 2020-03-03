@@ -8,37 +8,35 @@ import "./index.css";
 import "./App.css";
 
 async function getChangelog(packageName) {
-  // Watch this space - this function is going to get way more complicated, trust me
+  let packageInfoResponse = await fetch(
+    `https://unpkg.com/${packageName}/?meta`
+  );
 
-  // TODO do this better thing instead
-  // https://unpkg.com/@changesets/cli@2.5.2/?meta
+  if (packageInfoResponse.status === 404) {
+    return {
+      status: "error",
+      type: "packagenotfound"
+    };
+  }
 
-  return fetch(`https://unpkg.com/${packageName}/?meta`)
-    .then(res => {
-      return res.json();
-    })
-    .then(({ files }) => {
-      let changelog = files.find(({ path }) => path.match(/changelog\.md/i));
+  let { files } = await packageInfoResponse.json();
+  let changelog = files.find(({ path }) => path.match(/changelog\.md/i));
 
-      if (changelog) {
-        return fetch(`https://unpkg.com/${packageName}${changelog.path}`).then(
-          response => {
-            if (response.status !== 200) throw response;
-            return {
-              status: "success",
-              changelog: response.text()
-            };
-          }
-        );
-      } else {
-        console.log("got here");
-
+  if (changelog) {
+    return fetch(`https://unpkg.com/${packageName}${changelog.path}`).then(
+      response => {
         return {
-          status: "error",
-          type: "filenotfound"
+          status: "success",
+          changelog: response.text()
         };
       }
-    });
+    );
+  }
+
+  return {
+    status: "error",
+    type: "filenotfound"
+  };
 }
 
 const FailWhale = () => (
@@ -77,6 +75,15 @@ const ErrorMessage = ({ type, text, packageName }) => {
       </div>
     );
   }
+
+  if (type === "packagenotfound") {
+    return (
+      <p>
+        We couldn't find the package: {packageName} - perhaps a wild typo has
+        appeared?
+      </p>
+    );
+  }
   return "This is a completely unknown error";
 };
 
@@ -98,13 +105,8 @@ function App() {
       })
       .catch(err => {
         setLoading(false);
+        console.log(err);
         return err.text().then(message => {
-          /*
-            error text to handle:
-                `Cannot find package...`
-                `Cannot find "FILENAME" in pkg@version`
-          */
-
           if (!message) {
             setErrorMessage({
               type: "text",
