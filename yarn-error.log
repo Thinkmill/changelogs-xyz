@@ -1,0 +1,36 @@
+Arguments: 
+  /Users/bconolly/.nvm/versions/node/v12.14.1/bin/node /Users/bconolly/.nvm/versions/node/v12.14.1/bin/yarn init
+
+PATH: 
+  /Users/bconolly/.yarn/bin:/Users/bconolly/.nvm/versions/node/v12.14.1/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/bconolly/.yarn/bin
+
+Yarn version: 
+  1.15.2
+
+Node version: 
+  12.14.1
+
+Platform: 
+  darwin x64
+
+Trace: 
+  Error: canceled
+      at Interface.<anonymous> (/Users/bconolly/.nvm/versions/node/v12.14.1/lib/node_modules/yarn/lib/cli.js:125801:13)
+      at Interface.emit (events.js:223:5)
+      at Interface._ttyWrite (readline.js:885:16)
+      at ReadStream.onkeypress (readline.js:191:10)
+      at ReadStream.emit (events.js:223:5)
+      at emitKeys (internal/readline/utils.js:433:14)
+      at emitKeys.next (<anonymous>)
+      at ReadStream.onData (readline.js:1151:36)
+      at ReadStream.emit (events.js:223:5)
+      at addChunk (_stream_readable.js:309:12)
+
+npm manifest: 
+  No manifest
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
