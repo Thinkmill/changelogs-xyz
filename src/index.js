@@ -81,6 +81,7 @@ const useGetPackageAttributes = packageName => {
     index.search(packageName, algoliaSearchParameters).then(({ hits }) => {
       let match = hits[0];
       if (match) {
+        updateLoading(false);
         setPackageAttributes(match);
         if (!match.changelogFilename) {
           setNoChangelogFilename(true);
@@ -185,8 +186,6 @@ function App() {
 
   const combinedLoading = fetchingPackageAttributes || isLoading;
 
-  console.log(packageAtributes, combinedLoading);
-
   return (
     <div
       css={{
@@ -220,7 +219,7 @@ function App() {
             <ErrorMessage {...errorMessage} packageName={packageName} />
           </div>
         )}
-        {noChangelogFilename && (
+        {packageName && noChangelogFilename && (
           <div>
             <FailWhale />
             <ErrorMessage packageName={packageName} type="filenotfound" />
