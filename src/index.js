@@ -65,7 +65,8 @@ const searchClient = algoliasearch(
 const index = searchClient.initIndex("npm-search");
 
 const algoliaSearchParameters = {
-  attributesToRetrieve: ["name", "version", "changelogFilename"]
+  attributesToRetrieve: ["name", "version", "changelogFilename"],
+  analyticsTags: ["http://changelogs.xyz"]
 };
 
 const useGetPackageAttributes = packageName => {
