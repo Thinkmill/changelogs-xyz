@@ -5,6 +5,8 @@ import ReactDOM from "react-dom";
 import ReactMarkdown from "react-markdown";
 import getChangelog from "./functions/getChangelog";
 import Codeblock from "./Codeblock";
+import { useFilteredChangelog } from "@untitled-docs/changelog-utils";
+import queryString from "query-string";
 
 import "./index.css";
 
@@ -56,8 +58,7 @@ const ErrorMessage = ({ type, text, packageName }) => {
   return "This is a completely unknown error";
 };
 
-function App() {
-  const packageName = window.location.pathname.substr(1);
+const useGetChangelog = packageName => {
   const [changelog, updateChangelog] = useState(null);
   const [isLoading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState();
@@ -77,7 +78,6 @@ function App() {
         .catch(err => {
           setLoading(false);
           if (!err.text) {
-            console.log(err);
             setErrorMessage({
               type: "text",
               text: "This is a completely unknown error"
@@ -98,6 +98,65 @@ function App() {
         });
     }
   }, [packageName]);
+
+  return { changelog, isLoading, errorMessage };
+};
+
+const setQueryStringWithoutPageReload = qsValue => {
+  const newurl =
+    window.location.protocol +
+    `//` +
+    window.location.host +
+    window.location.pathname +
+    "?" +
+    qsValue;
+
+  window.history.pushState({ path: newurl }, "", newurl);
+};
+
+const useFilterSearch = () => {
+  const fields = queryString.parse(window.location.search);
+  const [searchValue, setSearchValue] = useState(fields.filter);
+
+  const updateFilter = newValue => {
+    setSearchValue(newValue);
+    let stringified = newValue
+      ? queryString.stringify({ filter: newValue })
+      : queryString.stringify({ filter: null });
+
+    setQueryStringWithoutPageReload(stringified);
+  };
+
+  return [searchValue, updateFilter];
+};
+
+const gridSize = 8;
+const borderRadius = 4;
+
+const Button = props => (
+  <button
+    css={{
+      backgroundColor: "#c43100",
+      border: 0,
+      borderRadius: borderRadius,
+      cursor: "pointer",
+      color: "white",
+      fontSize: "inherit",
+      margin: `${gridSize / 2}px 0`,
+      padding: `${gridSize * 1.5}px ${gridSize * 2}px`
+    }}
+    {...props}
+  />
+);
+
+function App() {
+  const packageName = window.location.pathname.substr(1);
+  const [searchValue, setSearchValue] = useFilterSearch();
+  const [filter, toggleFilter] = useState(!!searchValue);
+
+  const { changelog, isLoading, errorMessage } = useGetChangelog(packageName);
+
+  const filteredChangelog = useFilteredChangelog(changelog || "", searchValue);
 
   return (
     <div
@@ -132,7 +191,43 @@ function App() {
             <ErrorMessage {...errorMessage} packageName={packageName} />
           </div>
         )}
-        <ReactMarkdown source={changelog} renderers={{ code: Codeblock }} />
+        <div css={{ margin: "0 auto", width: "470px", textAlign: "center" }}>
+          <div>
+            <Button onClick={() => toggleFilter(!filter)}>
+              {filter ? "turn off" : "turn on"} experimental semver filter
+              {filter ? "" : " (this may crash the app)"}
+            </Button>
+          </div>
+          <a href="https://github.com/Thinkmill/changelogs-xyz/blob/master/why-is-filter-experimental.md">
+            (here's why semver filtering is experimental)
+          </a>
+        </div>
+        {filter ? (
+          <div css={{ paddingTop: "16px" }}>
+            <label>
+              Experimental semver filter:{" "}
+              <input
+                type="search"
+                placeholder={'e.g. "> 1.0.6 <= 3.0.2"'}
+                onChange={event => {
+                  setSearchValue(event.target.value);
+                }}
+                value={searchValue}
+              />
+            </label>
+          </div>
+        ) : null}
+        {filter ? (
+          filteredChangelog.map(({ version, content }) => (
+            <ReactMarkdown
+              key={version}
+              source={content}
+              renderers={{ code: Codeblock }}
+            />
+          ))
+        ) : (
+          <ReactMarkdown source={changelog} renderers={{ code: Codeblock }} />
+        )}
       </div>
     </div>
   );
