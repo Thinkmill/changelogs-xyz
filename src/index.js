@@ -5,7 +5,6 @@ import ReactDOM from "react-dom";
 import ReactMarkdown from "react-markdown";
 
 import "./index.css";
-import "./App.css";
 
 async function getChangelog(packageName) {
   let packageInfoResponse = await fetch(
@@ -23,14 +22,14 @@ async function getChangelog(packageName) {
   let changelog = files.find(({ path }) => path.match(/changelog\.md/i));
 
   if (changelog) {
-    return fetch(`https://unpkg.com/${packageName}${changelog.path}`).then(
-      response => {
+    return fetch(`https://unpkg.com/${packageName}${changelog.path}`)
+      .then(res => res.text())
+      .then(text => {
         return {
           status: "success",
-          changelog: response.text()
+          changelog: text
         };
-      }
-    );
+      });
   }
 
   return {
@@ -42,7 +41,7 @@ async function getChangelog(packageName) {
 const FailWhale = () => (
   <h2 css={{ textAlign: "center" }}>
     something went wrong loading this!{" "}
-    <a href="https://github.com/Thinkmill/changelog-xyz/issues">
+    <a href="https://github.com/Thinkmill/changelogs-xyz/issues">
       please raise an issue
     </a>{" "}
     including the full url
@@ -68,7 +67,7 @@ const ErrorMessage = ({ type, text, packageName }) => {
         </p>
         <p>
           If we did -{" "}
-          <a href="https://github.com/Thinkmill/changelog-xyz/issues">
+          <a href="https://github.com/Thinkmill/changelogs-xyz/issues">
             please raise an issue
           </a>{" "}
         </p>
@@ -90,50 +89,63 @@ const ErrorMessage = ({ type, text, packageName }) => {
 function App() {
   const packageName = window.location.pathname.substr(1);
   const [changelog, updateChangelog] = useState(null);
-  const [isLoading, setLoading] = useState(true);
+  const [isLoading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState();
 
   useEffect(() => {
-    getChangelog(packageName)
-      .then(text => {
-        setLoading(false);
-        if (text.status === "error") {
-          setErrorMessage(text);
-        } else {
-          updateChangelog(text.changelog);
-        }
-      })
-      .catch(err => {
-        setLoading(false);
-        console.log(err);
-        return err.text().then(message => {
-          if (!message) {
-            setErrorMessage({
-              type: "text",
-              text: "This is a completely unknown error"
-            });
+    if (packageName) {
+      setLoading(true);
+      getChangelog(packageName)
+        .then(text => {
+          setLoading(false);
+          if (text.status === "error") {
+            setErrorMessage(text);
           } else {
-            setErrorMessage({ type: "text", text: "message" });
+            updateChangelog(text.changelog);
           }
+        })
+        .catch(err => {
+          setLoading(false);
+          return err.text().then(message => {
+            if (!message) {
+              setErrorMessage({
+                type: "text",
+                text: "This is a completely unknown error"
+              });
+            } else {
+              setErrorMessage({ type: "text", text: "message" });
+            }
+          });
         });
-      });
+    }
   }, [packageName]);
 
   return (
     <div
       css={{
-        padding: "24px"
+        padding: "24px",
+        maxWidth: "640px",
+        margin: "0 auto"
       }}
     >
       <div>
-        <h1 css={{ textAlign: "center" }}>XYZ changelog: {packageName}</h1>
+        <h1 css={{ textAlign: "center" }}>changelogs.xyz: {packageName}</h1>
         <p>
-          Thanks for using changelog.xyz! Just add a package name to the URL and
-          we'll (try to) show you its changelog!
+          Thanks for using changelogs.xyz! Just add a package name to the URL
+          and we'll (try to) show you its changelog!
         </p>
-        <p>We are very in beta right now, </p>
+        <p>(We are very in beta right now)</p>
         {isLoading && (
           <h2 css={{ textAlign: "center" }}>fetching the changelog for you</h2>
+        )}
+        {!packageName && (
+          <p>
+            For example, you could go to{" "}
+            <a href="https://changelogs.xyz/@changesets/cli">
+              changelogs.xyz/@changesets/cli
+            </a>{" "}
+            to see the changelog changesets
+          </p>
         )}
         {errorMessage && (
           <div>
@@ -141,14 +153,7 @@ function App() {
             <ErrorMessage {...errorMessage} packageName={packageName} />
           </div>
         )}
-        <div
-          css={{
-            margin: "0 auto",
-            maxWidth: "680px"
-          }}
-        >
-          <ReactMarkdown source={changelog} />
-        </div>
+        <ReactMarkdown source={changelog} />
       </div>
     </div>
   );
