@@ -3,40 +3,10 @@ import { jsx } from "@emotion/core";
 import { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import ReactMarkdown from "react-markdown";
+import getChangelog from "./functions/getChangelog";
+import Codeblock from "./Codeblock";
 
 import "./index.css";
-
-async function getChangelog(packageName) {
-  let packageInfoResponse = await fetch(
-    `https://unpkg.com/${packageName}/?meta`
-  );
-
-  if (packageInfoResponse.status === 404) {
-    return {
-      status: "error",
-      type: "packagenotfound"
-    };
-  }
-
-  let { files } = await packageInfoResponse.json();
-  let changelog = files.find(({ path }) => path.match(/changelog\.md/i));
-
-  if (changelog) {
-    return fetch(`https://unpkg.com/${packageName}${changelog.path}`)
-      .then(res => res.text())
-      .then(text => {
-        return {
-          status: "success",
-          changelog: text
-        };
-      });
-  }
-
-  return {
-    status: "error",
-    type: "filenotfound"
-  };
-}
 
 const FailWhale = () => (
   <h2 css={{ textAlign: "center" }}>
@@ -106,6 +76,15 @@ function App() {
         })
         .catch(err => {
           setLoading(false);
+          if (!err.text) {
+            console.log(err);
+            setErrorMessage({
+              type: "text",
+              text: "This is a completely unknown error"
+            });
+            return;
+          }
+
           return err.text().then(message => {
             if (!message) {
               setErrorMessage({
@@ -153,7 +132,7 @@ function App() {
             <ErrorMessage {...errorMessage} packageName={packageName} />
           </div>
         )}
-        <ReactMarkdown source={changelog} />
+        <ReactMarkdown source={changelog} renderers={{ code: Codeblock }} />
       </div>
     </div>
   );
