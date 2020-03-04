@@ -7,7 +7,18 @@ import getChangelog from "./functions/getChangelog";
 import Codeblock from "./Codeblock";
 import { useFilteredChangelog } from "@untitled-docs/changelog-utils";
 import queryString from "query-string";
-
+import algoliasearch from "algoliasearch/lite";
+import {
+  InstantSearch,
+  Hits,
+  SearchBox,
+  Pagination,
+  Highlight,
+  ClearRefinements,
+  CurrentRefinements,
+  RefinementList,
+  Configure
+} from "react-instantsearch-dom";
 import "./index.css";
 
 const FailWhale = () => (
@@ -149,14 +160,38 @@ const Button = props => (
   />
 );
 
+function Hit({ hit }) {
+  console.log(hit);
+  return (
+    <div>
+      <div className="hit-name">
+        <Highlight attribute="version" hit={hit} />
+      </div>
+      <div className="hit-name">
+        <Highlight attribute="name" hit={hit} />
+      </div>
+      <div css={{ paddingRight: "12px", color: "rebeccapurple" }}>
+        <Highlight attribute="changelogFilename" hit={hit} />
+      </div>
+    </div>
+  );
+}
+
+const searchClient = algoliasearch(SECRETS);
+
 function App() {
   const packageName = window.location.pathname.substr(1);
   const [searchValue, setSearchValue] = useFilterSearch();
   const [filter, toggleFilter] = useState(!!searchValue);
 
-  const { changelog, isLoading, errorMessage } = useGetChangelog(packageName);
+  const { isLoading, errorMessage } = useGetChangelog(packageName);
 
-  const filteredChangelog = useFilteredChangelog(changelog || "", searchValue);
+  const [packageAtributes, setPackageAttributes] = useState({
+    name: packageName
+  });
+  const [changelog, setChangelog] = useState("");
+
+  const filteredChangelog = useFilteredChangelog(changelog, searchValue);
 
   return (
     <div
@@ -166,6 +201,28 @@ function App() {
         margin: "0 auto"
       }}
     >
+      <div>
+        EXPERIMENTS
+        <InstantSearch indexName="npm-search" searchClient={searchClient}>
+          <Configure
+            attributesToRetrieve={["name", "version", "changelogFilename"]}
+            query={packageName}
+            hitsPerPage={1}
+          />
+          <Hits
+            hitComponent={({ hit: { changelogFilename, ...rest } }) => {
+              setPackageAttributes(rest);
+
+              if (changelogFilename) {
+                fetch(changelogFilename)
+                  .then(cl => cl.text())
+                  .then(setChangelog);
+              }
+              return null;
+            }}
+          />
+        </InstantSearch>
+      </div>
       <div>
         <h1 css={{ textAlign: "center" }}>changelogs.xyz: {packageName}</h1>
         <p>
