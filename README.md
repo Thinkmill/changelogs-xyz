@@ -1,4 +1,4 @@
-# changelogs-xyz
+# changelogs-xyz 🦋
 
 Find npm changelogs, easily.
 
