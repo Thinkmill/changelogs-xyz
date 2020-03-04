@@ -3,11 +3,10 @@ import { jsx } from "@emotion/core";
 import { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import ReactMarkdown from "react-markdown";
-import getChangelog from "./functions/getChangelog";
 import Codeblock from "./Codeblock";
 import { useFilteredChangelog } from "@untitled-docs/changelog-utils";
 import queryString from "query-string";
-
+import algoliasearch from "algoliasearch/lite";
 import "./index.css";
 
 const FailWhale = () => (
@@ -58,46 +57,64 @@ const ErrorMessage = ({ type, text, packageName }) => {
   return "This is a completely unknown error";
 };
 
-const useGetChangelog = packageName => {
-  const [changelog, updateChangelog] = useState(null);
-  const [isLoading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState();
+const searchClient = algoliasearch(
+  "OFCNCOG2CU",
+  "0868500922f7d393d8d59fc283a82f2e"
+);
+
+const index = searchClient.initIndex("npm-search");
+
+const algoliaSearchParameters = {
+  attributesToRetrieve: ["name", "version", "changelogFilename"],
+  analyticsTags: ["http://changelogs.xyz"]
+};
+
+const useGetPackageAttributes = packageName => {
+  const [fetchingPackageAttributes, updateLoading] = useState(false);
+  const [noChangelogFilename, setNoChangelogFilename] = useState(false);
+  const [packageAtributes, setPackageAttributes] = useState({
+    name: packageName
+  });
 
   useEffect(() => {
-    if (packageName) {
-      setLoading(true);
-      getChangelog(packageName)
+    updateLoading(true);
+    index.search(packageName, algoliaSearchParameters).then(({ hits }) => {
+      let match = hits[0];
+      if (match) {
+        updateLoading(false);
+        setPackageAttributes(match);
+        if (!match.changelogFilename) {
+          setNoChangelogFilename(true);
+        }
+      }
+    });
+  }, [packageName]);
+
+  return { fetchingPackageAttributes, packageAtributes, noChangelogFilename };
+};
+
+const useGetChangelog = (filePath, noChangelogFilename) => {
+  const [changelog, updateChangelog] = useState("");
+  const [isLoading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState();
+  useEffect(() => {
+    if (filePath && !noChangelogFilename) {
+      fetch(filePath)
+        .then(res => res.text())
         .then(text => {
           setLoading(false);
           if (text.status === "error") {
             setErrorMessage(text);
           } else {
-            updateChangelog(text.changelog);
+            updateChangelog(text);
           }
         })
         .catch(err => {
           setLoading(false);
-          if (!err.text) {
-            setErrorMessage({
-              type: "text",
-              text: "This is a completely unknown error"
-            });
-            return;
-          }
-
-          return err.text().then(message => {
-            if (!message) {
-              setErrorMessage({
-                type: "text",
-                text: "This is a completely unknown error"
-              });
-            } else {
-              setErrorMessage({ type: "text", text: "message" });
-            }
-          });
+          setErrorMessage(err);
         });
     }
-  }, [packageName]);
+  }, [filePath, noChangelogFilename]);
 
   return { changelog, isLoading, errorMessage };
 };
@@ -154,9 +171,20 @@ function App() {
   const [searchValue, setSearchValue] = useFilterSearch();
   const [filter, toggleFilter] = useState(!!searchValue);
 
-  const { changelog, isLoading, errorMessage } = useGetChangelog(packageName);
+  const {
+    fetchingPackageAttributes,
+    packageAtributes,
+    noChangelogFilename
+  } = useGetPackageAttributes(packageName);
 
-  const filteredChangelog = useFilteredChangelog(changelog || "", searchValue);
+  const { changelog, isLoading, errorMessage } = useGetChangelog(
+    packageAtributes.changelogFilename,
+    noChangelogFilename
+  );
+
+  const filteredChangelog = useFilteredChangelog(changelog, searchValue);
+
+  const combinedLoading = fetchingPackageAttributes || isLoading;
 
   return (
     <div
@@ -173,7 +201,7 @@ function App() {
           and we'll (try to) show you its changelog!
         </p>
         <p>(We are very in beta right now)</p>
-        {isLoading && (
+        {combinedLoading && (
           <h2 css={{ textAlign: "center" }}>fetching the changelog for you</h2>
         )}
         {!packageName && (
@@ -189,6 +217,12 @@ function App() {
           <div>
             <FailWhale />
             <ErrorMessage {...errorMessage} packageName={packageName} />
+          </div>
+        )}
+        {packageName && noChangelogFilename && (
+          <div>
+            <FailWhale />
+            <ErrorMessage packageName={packageName} type="filenotfound" />
           </div>
         )}
         <div css={{ margin: "0 auto", width: "470px", textAlign: "center" }}>
