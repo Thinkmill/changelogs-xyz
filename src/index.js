@@ -3,22 +3,10 @@ import { jsx } from "@emotion/core";
 import { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import ReactMarkdown from "react-markdown";
-import getChangelog from "./functions/getChangelog";
 import Codeblock from "./Codeblock";
 import { useFilteredChangelog } from "@untitled-docs/changelog-utils";
 import queryString from "query-string";
 import algoliasearch from "algoliasearch/lite";
-import {
-  InstantSearch,
-  Hits,
-  SearchBox,
-  Pagination,
-  Highlight,
-  ClearRefinements,
-  CurrentRefinements,
-  RefinementList,
-  Configure
-} from "react-instantsearch-dom";
 import "./index.css";
 
 const FailWhale = () => (
@@ -69,46 +57,62 @@ const ErrorMessage = ({ type, text, packageName }) => {
   return "This is a completely unknown error";
 };
 
-const useGetChangelog = packageName => {
-  const [changelog, updateChangelog] = useState(null);
-  const [isLoading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState();
+const searchClient = algoliasearch(
+  "OFCNCOG2CU",
+  "0868500922f7d393d8d59fc283a82f2e"
+);
+
+const index = searchClient.initIndex("npm-search");
+
+const algoliaSearchParameters = {
+  attributesToRetrieve: ["name", "version", "changelogFilename"]
+};
+
+const useGetPackageAttributes = packageName => {
+  const [fetchingPackageAttributes, updateLoading] = useState(false);
+  const [noChangelogFilename, setNoChangelogFilename] = useState(false);
+  const [packageAtributes, setPackageAttributes] = useState({
+    name: packageName
+  });
 
   useEffect(() => {
-    if (packageName) {
-      setLoading(true);
-      getChangelog(packageName)
+    updateLoading(true);
+    index.search(packageName, algoliaSearchParameters).then(({ hits }) => {
+      let match = hits[0];
+      if (match) {
+        setPackageAttributes(match);
+        if (!match.changelogFilename) {
+          setNoChangelogFilename(true);
+        }
+      }
+    });
+  }, [packageName]);
+
+  return { fetchingPackageAttributes, packageAtributes, noChangelogFilename };
+};
+
+const useGetChangelog = (filePath, noChangelogFilename) => {
+  const [changelog, updateChangelog] = useState("");
+  const [isLoading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState();
+  useEffect(() => {
+    if (filePath && !noChangelogFilename) {
+      fetch(filePath)
+        .then(res => res.text())
         .then(text => {
           setLoading(false);
           if (text.status === "error") {
             setErrorMessage(text);
           } else {
-            updateChangelog(text.changelog);
+            updateChangelog(text);
           }
         })
         .catch(err => {
           setLoading(false);
-          if (!err.text) {
-            setErrorMessage({
-              type: "text",
-              text: "This is a completely unknown error"
-            });
-            return;
-          }
-
-          return err.text().then(message => {
-            if (!message) {
-              setErrorMessage({
-                type: "text",
-                text: "This is a completely unknown error"
-              });
-            } else {
-              setErrorMessage({ type: "text", text: "message" });
-            }
-          });
+          setErrorMessage(err);
         });
     }
-  }, [packageName]);
+  }, [filePath, noChangelogFilename]);
 
   return { changelog, isLoading, errorMessage };
 };
@@ -160,38 +164,27 @@ const Button = props => (
   />
 );
 
-function Hit({ hit }) {
-  console.log(hit);
-  return (
-    <div>
-      <div className="hit-name">
-        <Highlight attribute="version" hit={hit} />
-      </div>
-      <div className="hit-name">
-        <Highlight attribute="name" hit={hit} />
-      </div>
-      <div css={{ paddingRight: "12px", color: "rebeccapurple" }}>
-        <Highlight attribute="changelogFilename" hit={hit} />
-      </div>
-    </div>
-  );
-}
-
-const searchClient = algoliasearch(SECRETS);
-
 function App() {
   const packageName = window.location.pathname.substr(1);
   const [searchValue, setSearchValue] = useFilterSearch();
   const [filter, toggleFilter] = useState(!!searchValue);
 
-  const { isLoading, errorMessage } = useGetChangelog(packageName);
+  const {
+    fetchingPackageAttributes,
+    packageAtributes,
+    noChangelogFilename
+  } = useGetPackageAttributes(packageName);
 
-  const [packageAtributes, setPackageAttributes] = useState({
-    name: packageName
-  });
-  const [changelog, setChangelog] = useState("");
+  const { changelog, isLoading, errorMessage } = useGetChangelog(
+    packageAtributes.changelogFilename,
+    noChangelogFilename
+  );
 
   const filteredChangelog = useFilteredChangelog(changelog, searchValue);
+
+  const combinedLoading = fetchingPackageAttributes || isLoading;
+
+  console.log(packageAtributes, combinedLoading);
 
   return (
     <div
@@ -202,35 +195,13 @@ function App() {
       }}
     >
       <div>
-        EXPERIMENTS
-        <InstantSearch indexName="npm-search" searchClient={searchClient}>
-          <Configure
-            attributesToRetrieve={["name", "version", "changelogFilename"]}
-            query={packageName}
-            hitsPerPage={1}
-          />
-          <Hits
-            hitComponent={({ hit: { changelogFilename, ...rest } }) => {
-              setPackageAttributes(rest);
-
-              if (changelogFilename) {
-                fetch(changelogFilename)
-                  .then(cl => cl.text())
-                  .then(setChangelog);
-              }
-              return null;
-            }}
-          />
-        </InstantSearch>
-      </div>
-      <div>
         <h1 css={{ textAlign: "center" }}>changelogs.xyz: {packageName}</h1>
         <p>
           Thanks for using changelogs.xyz! Just add a package name to the URL
           and we'll (try to) show you its changelog!
         </p>
         <p>(We are very in beta right now)</p>
-        {isLoading && (
+        {combinedLoading && (
           <h2 css={{ textAlign: "center" }}>fetching the changelog for you</h2>
         )}
         {!packageName && (
@@ -246,6 +217,12 @@ function App() {
           <div>
             <FailWhale />
             <ErrorMessage {...errorMessage} packageName={packageName} />
+          </div>
+        )}
+        {noChangelogFilename && (
+          <div>
+            <FailWhale />
+            <ErrorMessage packageName={packageName} type="filenotfound" />
           </div>
         )}
         <div css={{ margin: "0 auto", width: "470px", textAlign: "center" }}>
