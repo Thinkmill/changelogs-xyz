@@ -1,3 +1,3 @@
-# changelog-xyz
+# changelogs-xyz
 
 Find changelogs, easily
