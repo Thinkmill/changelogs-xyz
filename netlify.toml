@@ -1,0 +1,12 @@
+[build]
+  command = "yarn build"
+  publish = "build"
+[build.environment]
+  NODE_VERSION = "12"
+  YARN_VERSION = "1.21.1"
+  YARN_FLAGS = "--frozen-lockfile"
+
+[[redirects]]
+  from = "/*"
+  to = "/"
+  status = 200
