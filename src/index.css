@@ -18,15 +18,3 @@ code {
 img {
   max-width: 100%;
 }
-
-a {
-  color: #0065ff;
-  text-decoration: none;
-}
-a:hover {
-  text-decoration: underline;
-}
-
-ul {
-  list-style: none;
-}

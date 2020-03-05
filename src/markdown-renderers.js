@@ -18,7 +18,11 @@ export const inlineCode = ({ inline, value, ...props }) => (
       color: color.P500,
       fontSize: "0.85em",
       margin: 0,
-      padding: "0.2em 0.4em"
+      padding: "0.2em 0.4em",
+
+      "> a": {
+        color: "inherit"
+      }
     }}
     {...props}
   />
@@ -71,3 +75,22 @@ export const list = ({ depth, ordered, start, tight, ...props }) => {
     />
   );
 };
+
+// Inline Elements
+// ------------------------------
+
+/* eslint-disable jsx-a11y/anchor-has-content */
+export const link = props => (
+  <a
+    css={{
+      color: color.B400,
+      textDecoration: "none",
+
+      ":hover": {
+        color: color.B300,
+        textDecoration: "underline"
+      }
+    }}
+    {...props}
+  />
+);

@@ -1,7 +1,7 @@
 /** @jsx jsx */
+
+import { Fragment, useState, forwardRef, useRef } from "react";
 import { jsx } from "@emotion/core";
-import { searchClient, algoliaSearchParameters } from "./utils";
-import { color } from "./theme";
 import {
   Configure,
   Highlight,
@@ -11,17 +11,47 @@ import {
   SearchBox
 } from "react-instantsearch-dom";
 
+import {
+  algoliaSearchParameters,
+  searchClient,
+  useClickOutside,
+  useKeyPress
+} from "./utils";
+import { color } from "./theme";
+
 const PackageSearch = () => {
+  const rootRef = useRef();
+  const [isOpen, setOpen] = useState(false);
+  const openDialog = () => setOpen(true);
+  const closeDialog = () => setOpen(false);
+
+  // close on click outside
+  useClickOutside({
+    handler: closeDialog,
+    refs: [rootRef],
+    listenWhen: isOpen
+  });
+
+  // close on esc press
+  useKeyPress({
+    targetKey: "Escape",
+    downHandler: closeDialog,
+    listenWhen: isOpen
+  });
+
   return (
     <InstantSearch indexName="npm-search" searchClient={searchClient}>
-      <Root>
-        <Configure {...algoliaSearchParameters} />
-        <h2>Search for package</h2>
-        <SearchBox />
-        <Dialog>
-          <Hits hitComponent={Hit} />
-          <Footer />
-        </Dialog>
+      <Configure {...algoliaSearchParameters} />
+      <h2>Search for package</h2>
+      <Root ref={rootRef}>
+        {/* click is for weird case where `esc` closes dialog, no way to open again without `blur` */}
+        <SearchBox onFocus={openDialog} onClick={openDialog} />
+        {isOpen && (
+          <Dialog>
+            <Hits hitComponent={Hit} />
+            <Footer />
+          </Dialog>
+        )}
       </Root>
     </InstantSearch>
   );
@@ -30,10 +60,13 @@ const PackageSearch = () => {
 // Styled Components
 // ------------------------------
 
-const Root = props => {
+const Root = forwardRef((props, ref) => {
   return (
     <div
+      ref={ref}
       css={{
+        position: "relative",
+
         // search input and buttons
         ".ais-SearchBox-form": {
           alignItems: "center",
@@ -106,7 +139,7 @@ const Root = props => {
       {...props}
     />
   );
-};
+});
 
 const Dialog = props => (
   <div
@@ -119,6 +152,9 @@ const Dialog = props => (
       flexDirection: "column",
       marginTop: 8,
       outline: 0,
+      position: "absolute",
+      top: "100%",
+      width: "100%",
       zIndex: 500
     }}
     {...props}
@@ -160,23 +196,28 @@ const hitCss = {
   paddingBottom: 8,
   paddingTop: 8,
   paddingLeft: 16,
-  paddingRight: 16
+  paddingRight: 16,
+
+  "li:first-of-type > &": {
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8
+  }
 };
 
 const Hit = ({ hit }) => {
   const { name, changelogFilename } = hit;
   return (
-    <div>
+    <Fragment>
       {changelogFilename ? (
         <a
           href={`${window.location.origin}/${name}`}
           css={{
             ...hitCss,
             color: color.N800,
+            textDecoration: "none",
 
             ":hover": {
-              backgroundColor: color.B50,
-              textDecoration: "none"
+              backgroundColor: color.B50
             }
           }}
         >
@@ -189,7 +230,7 @@ const Hit = ({ hit }) => {
           <Emoji emoji="🐛" label="no-changelog" />
         </div>
       )}
-    </div>
+    </Fragment>
   );
 };
 

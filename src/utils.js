@@ -1,6 +1,12 @@
 /** @jsx jsx */
 
-import { useState, useEffect } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState
+} from "react";
 import algoliasearch from "algoliasearch/lite";
 import queryString from "query-string";
 
@@ -92,4 +98,94 @@ export const useFilterSearch = () => {
   };
 
   return [searchValue, updateFilter];
+};
+
+// Click Outside
+// ------------------------------
+
+export const useClickOutside = ({ handler, refs, listenWhen }) => {
+  const ref = useRef(null);
+
+  const handleMouseDown = useCallback(
+    event => {
+      // bail on mouse down "inside" any of the provided refs
+      if (refs.some(ref => ref.current && ref.current.contains(event.target))) {
+        return;
+      }
+
+      handler(event);
+    },
+    [handler, refs]
+  );
+
+  // layout effect is not run on the server
+  useLayoutEffect(() => {
+    if (listenWhen) {
+      document.addEventListener("mousedown", handleMouseDown);
+
+      return () => {
+        document.removeEventListener("mousedown", handleMouseDown);
+      };
+    }
+    /* eslint-disable react-hooks/exhaustive-deps */
+  }, [listenWhen, handleMouseDown]);
+
+  return ref;
+};
+
+// Key Press
+// ------------------------------
+
+export const useKeyPress = ({
+  targetKey,
+  downHandler,
+  upHandler,
+  listenWhen
+}) => {
+  // Keep track of whether the target key is pressed
+  const [keyPressed, setKeyPressed] = useState(false);
+
+  // handle key down
+  const onDown = useCallback(
+    event => {
+      if (event.key === targetKey) {
+        setKeyPressed(true);
+
+        if (typeof downHandler === "function") {
+          downHandler(event);
+        }
+      }
+    },
+    [targetKey, downHandler]
+  );
+
+  // handle key up
+  const onUp = useCallback(
+    event => {
+      if (event.key === targetKey) {
+        setKeyPressed(false);
+
+        if (typeof upHandler === "function") {
+          upHandler(event);
+        }
+      }
+    },
+    [targetKey, upHandler]
+  );
+
+  // add event listeners
+  useEffect(() => {
+    if (listenWhen) {
+      window.addEventListener("keydown", onDown);
+      window.addEventListener("keyup", onUp);
+
+      // Remove event listeners on cleanup
+      return () => {
+        window.removeEventListener("keydown", onDown);
+        window.removeEventListener("keyup", onUp);
+      };
+    }
+  }, [listenWhen, onDown, onUp]);
+
+  return keyPressed;
 };

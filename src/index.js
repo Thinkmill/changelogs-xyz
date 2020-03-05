@@ -109,6 +109,14 @@ function App() {
                 href="https://github.com/Thinkmill/changelogs-xyz/blob/master/why-is-filter-experimental.md"
                 target="_blank"
                 rel="noopener noreferrer"
+                css={{
+                  color: color.B400,
+                  textDecoration: "none",
+                  ":hover": {
+                    color: color.B300,
+                    textDecoration: "underline"
+                  }
+                }}
               >
                 this may crash the app
               </a>
