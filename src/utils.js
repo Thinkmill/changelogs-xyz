@@ -7,14 +7,14 @@ import queryString from "query-string";
 // Package Resolution
 // ------------------------------
 
-const searchClient = algoliasearch(
+export const searchClient = algoliasearch(
   "OFCNCOG2CU",
   "0868500922f7d393d8d59fc283a82f2e"
 );
 
 const index = searchClient.initIndex("npm-search");
 
-const algoliaSearchParameters = {
+export const algoliaSearchParameters = {
   attributesToRetrieve: ["name", "version", "changelogFilename"],
   analyticsTags: ["http://changelogs.xyz"]
 };
@@ -73,13 +73,7 @@ export const useGetChangelog = (filePath, noChangelogFilename) => {
 // ------------------------------
 
 export const setQueryStringWithoutPageReload = qsValue => {
-  const newurl =
-    window.location.protocol +
-    `//` +
-    window.location.host +
-    window.location.pathname +
-    "?" +
-    qsValue;
+  const newurl = `${window.location.origin}${window.location.pathname}?${qsValue}`;
 
   window.history.pushState({ path: newurl }, "", newurl);
 };

@@ -46,8 +46,6 @@ const headingStyles = [
 export const heading = ({ level, ...props }) => {
   const Tag = `h${level}`;
   const levelStyles = headingStyles[level];
-  console.log(props);
-
   return <Tag css={levelStyles} {...props} />;
 };
 
