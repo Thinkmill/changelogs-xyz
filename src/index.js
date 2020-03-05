@@ -1,10 +1,10 @@
 /** @jsx jsx */
-
 import { jsx } from "@emotion/core";
 import { useFilteredChangelog } from "@untitled-docs/changelog-utils";
 import { useState, Fragment } from "react";
 import ReactDOM from "react-dom";
 import ReactMarkdown from "react-markdown";
+import PackageSearch from "./PackageSearch";
 
 import * as markdownRenderers from "./markdown-renderers";
 import {
@@ -30,6 +30,7 @@ const Home = () => {
       </p>
       <p>For example, to see the "changesets" changelog you could go to:</p>
       <Button href="/@changesets/cli">@changesets/cli</Button>
+      <PackageSearch />
     </Container>
   );
 };
@@ -108,6 +109,14 @@ function App() {
                 href="https://github.com/Thinkmill/changelogs-xyz/blob/master/why-is-filter-experimental.md"
                 target="_blank"
                 rel="noopener noreferrer"
+                css={{
+                  color: color.B400,
+                  textDecoration: "none",
+                  ":hover": {
+                    color: color.B300,
+                    textDecoration: "underline"
+                  }
+                }}
               >
                 this may crash the app
               </a>
