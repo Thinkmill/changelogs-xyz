@@ -2,13 +2,16 @@
 
 import { jsx } from "@emotion/core";
 import { useFilteredChangelog } from "@untitled-docs/changelog-utils";
-import { useEffect, useState, Fragment } from "react";
+import { useState, Fragment } from "react";
 import ReactDOM from "react-dom";
 import ReactMarkdown from "react-markdown";
-import algoliasearch from "algoliasearch/lite";
 
 import * as markdownRenderers from "./markdown-renderers";
-import { useFilterSearch } from "./utils";
+import {
+  useFilterSearch,
+  useGetChangelog,
+  useGetPackageAttributes
+} from "./utils";
 import { color } from "./theme";
 import "./index.css";
 
@@ -16,87 +19,10 @@ import { Button } from "./components/Button";
 import { Loading } from "./components/Loading";
 import { Switch } from "./components/Switch";
 
-const searchClient = algoliasearch(
-  "OFCNCOG2CU",
-  "0868500922f7d393d8d59fc283a82f2e"
-);
-
-const index = searchClient.initIndex("npm-search");
-
-const algoliaSearchParameters = {
-  attributesToRetrieve: ["name", "version", "changelogFilename"],
-  analyticsTags: ["http://changelogs.xyz"]
-};
-
-const useGetPackageAttributes = packageName => {
-  const [fetchingPackageAttributes, updateLoading] = useState(false);
-  const [noChangelogFilename, setNoChangelogFilename] = useState(false);
-  const [packageAtributes, setPackageAttributes] = useState({
-    name: packageName
-  });
-
-  useEffect(() => {
-    updateLoading(true);
-    index.search(packageName, algoliaSearchParameters).then(({ hits }) => {
-      let match = hits[0];
-      if (match) {
-        updateLoading(false);
-        setPackageAttributes(match);
-        if (!match.changelogFilename) {
-          setNoChangelogFilename(true);
-        }
-      }
-    });
-  }, [packageName]);
-
-  return { fetchingPackageAttributes, packageAtributes, noChangelogFilename };
-};
-
-const useGetChangelog = (filePath, noChangelogFilename) => {
-  const [changelog, updateChangelog] = useState("");
-  const [isLoading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState();
-  useEffect(() => {
-    if (filePath && !noChangelogFilename) {
-      fetch(filePath)
-        .then(res => res.text())
-        .then(text => {
-          setLoading(false);
-          if (text.status === "error") {
-            setErrorMessage(text);
-          } else {
-            updateChangelog(text);
-          }
-        })
-        .catch(err => {
-          setLoading(false);
-          setErrorMessage(err);
-        });
-    }
-  }, [filePath, noChangelogFilename]);
-
-  return { changelog, isLoading, errorMessage };
-};
-
-const Beta = () => (
-  <span
-    css={{
-      backgroundColor: color.T300,
-      color: "white",
-      borderRadius: 999,
-      fontSize: "0.85em",
-      fontWeight: 500,
-      padding: "0.2em 0.8em"
-    }}
-  >
-    Beta
-  </span>
-);
-
-const Home = props => {
+const Home = () => {
   return (
     <Container>
-      <Beta />
+      <BetaLabel />
       <h1 css={{ color: color.N800, margin: 0 }}>changelogs.xyz</h1>
       <p>
         Thanks for using changelogs.xyz! Just add a package name to the URL and
@@ -136,7 +62,7 @@ function App() {
     <Fragment>
       <Container>
         <Header>
-          <Beta />
+          <BetaLabel />
           <h1 css={{ color: color.N800, margin: 0 }}>
             changelogs.xyz: {packageName}
           </h1>
@@ -145,6 +71,7 @@ function App() {
             and we'll (try to) show you its changelog!
           </p>
         </Header>
+
         {combinedLoading && (
           <div css={{ paddingTop: 100, textAlign: "center" }}>
             <Loading />
@@ -153,22 +80,19 @@ function App() {
             </p>
           </div>
         )}
-        {errorMessage && (
+
+        {noChangelogFilename && (
           <div>
             <div css={{ padding: "20px 100px" }}>
               <img src="/empty-box.svg" alt="Illustration: an empty box" />
             </div>
             <h2 css={{ color: color.N800 }}>Something went wrong...</h2>
-            <ErrorMessage {...errorMessage} packageName={packageName} />
-            <p>If you believe this to be an error please raise an issue:</p>
-            <IssueLink type={errorMessage.type}>Raise an Issue</IssueLink>
-          </div>
-        )}
-        {packageName && noChangelogFilename && (
-          <div>
             <ErrorMessage packageName={packageName} type="filenotfound" />
+            <p>If you believe this to be an error please raise an issue:</p>
+            <IssueLink type="filenotfound">Raise an Issue</IssueLink>
           </div>
         )}
+
         {changelog && (
           <div
             css={{ display: "flex", alignItems: "center", marginBottom: 20 }}
@@ -191,39 +115,13 @@ function App() {
             </label>
           </div>
         )}
+
         {filter ? (
           <div css={{}}>
-            <label
-              htmlFor="filter-input"
-              css={{
-                border: 0,
-                clip: "rect(0, 0, 0, 0)",
-                height: 1,
-                overflow: "hidden",
-                padding: 0,
-                position: "absolute",
-                whiteSpace: "nowrap",
-                width: 1
-              }}
-            >
+            <label htmlFor="filter-input" css={visiblyHiddenStyles}>
               Experimental semver filter
             </label>
-            <input
-              css={{
-                backgroundColor: color.N20,
-                border: 0,
-                color: color.N800,
-                outline: 0,
-                borderRadius: 8,
-                boxSizing: "border-box",
-                fontSize: "inherit",
-                padding: 16,
-                width: "100%",
-
-                ":focus": {
-                  backgroundColor: color.N30
-                }
-              }}
+            <Input
               id="filter-input"
               type="search"
               placeholder={'e.g. "> 1.0.6 <= 3.0.2"'}
@@ -234,6 +132,7 @@ function App() {
             />
           </div>
         ) : null}
+
         <Logs>
           {filter ? (
             filteredChangelog.map(({ version, content }) => (
@@ -255,6 +154,21 @@ function App() {
 // Styled Components
 // ------------------------------
 
+const BetaLabel = () => (
+  <span
+    css={{
+      backgroundColor: color.T300,
+      color: "white",
+      borderRadius: 999,
+      fontSize: "0.85em",
+      fontWeight: 500,
+      padding: "0.2em 0.8em"
+    }}
+  >
+    Beta
+  </span>
+);
+
 const IssueLink = ({ type, ...props }) => {
   const url = "https://github.com/Thinkmill/changelogs-xyz/issues/new";
   const typeMap = {
@@ -268,6 +182,27 @@ const IssueLink = ({ type, ...props }) => {
   return <Button href={href} target="_blank" {...props} />;
 };
 
+const Input = props => (
+  <input
+    css={{
+      backgroundColor: color.N20,
+      border: 0,
+      color: color.N800,
+      outline: 0,
+      borderRadius: 8,
+      boxSizing: "border-box",
+      fontSize: "inherit",
+      padding: 16,
+      width: "100%",
+
+      ":focus": {
+        backgroundColor: color.N30
+      }
+    }}
+    {...props}
+  />
+);
+
 const ErrorMessage = ({ type, text, packageName }) => {
   if (type === "text") {
     return <p>{text}</p>;
@@ -276,10 +211,16 @@ const ErrorMessage = ({ type, text, packageName }) => {
   if (type === "filenotfound") {
     return (
       <p>
-        We couldn't resolve the file. It may be we don't support the format yet.
-        You can check over on{" "}
-        <a href={`https://unpkg.com/browse/${packageName}/`}>unpkg</a> to see if
-        we missed it.
+        We couldn't resolve the file. It could just be a typo, or we may not
+        support the format yet. You can check over on{" "}
+        <a
+          href={`https://unpkg.com/browse/${packageName}/`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          unpkg
+        </a>{" "}
+        to see if we missed it.
       </p>
     );
   }
@@ -330,5 +271,16 @@ const Logs = props => (
     {...props}
   />
 );
+
+const visiblyHiddenStyles = {
+  border: 0,
+  clip: "rect(0, 0, 0, 0)",
+  height: 1,
+  overflow: "hidden",
+  padding: 0,
+  position: "absolute",
+  whiteSpace: "nowrap",
+  width: 1
+};
 
 ReactDOM.render(<App />, document.getElementById("root"));

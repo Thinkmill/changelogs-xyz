@@ -1,53 +1,76 @@
 /** @jsx jsx */
 
 import { useState, useEffect } from "react";
+import algoliasearch from "algoliasearch/lite";
 import queryString from "query-string";
 
-import getChangelog from "./functions/getChangelog";
+// Package Resolution
+// ------------------------------
 
-export const useGetChangelog = packageName => {
-  const [changelog, updateChangelog] = useState(null);
-  const [isLoading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState();
+const searchClient = algoliasearch(
+  "OFCNCOG2CU",
+  "0868500922f7d393d8d59fc283a82f2e"
+);
+
+const index = searchClient.initIndex("npm-search");
+
+const algoliaSearchParameters = {
+  attributesToRetrieve: ["name", "version", "changelogFilename"],
+  analyticsTags: ["http://changelogs.xyz"]
+};
+
+export const useGetPackageAttributes = packageName => {
+  const [fetchingPackageAttributes, updateLoading] = useState(false);
+  const [noChangelogFilename, setNoChangelogFilename] = useState(false);
+  const [packageAtributes, setPackageAttributes] = useState({
+    name: packageName
+  });
 
   useEffect(() => {
-    if (packageName) {
-      setLoading(true);
-      getChangelog(packageName)
+    updateLoading(true);
+    index.search(packageName, algoliaSearchParameters).then(({ hits }) => {
+      let match = hits[0];
+      if (match) {
+        updateLoading(false);
+        setPackageAttributes(match);
+        if (!match.changelogFilename) {
+          setNoChangelogFilename(true);
+        }
+      }
+    });
+  }, [packageName]);
+
+  return { fetchingPackageAttributes, packageAtributes, noChangelogFilename };
+};
+
+export const useGetChangelog = (filePath, noChangelogFilename) => {
+  const [changelog, updateChangelog] = useState("");
+  const [isLoading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState();
+  useEffect(() => {
+    if (filePath && !noChangelogFilename) {
+      fetch(filePath)
+        .then(res => res.text())
         .then(text => {
           setLoading(false);
           if (text.status === "error") {
             setErrorMessage(text);
           } else {
-            updateChangelog(text.changelog);
+            updateChangelog(text);
           }
         })
         .catch(err => {
           setLoading(false);
-          if (!err.text) {
-            setErrorMessage({
-              type: "text",
-              text: "This is a completely unknown error"
-            });
-            return;
-          }
-
-          return err.text().then(message => {
-            if (!message) {
-              setErrorMessage({
-                type: "text",
-                text: "This is a completely unknown error"
-              });
-            } else {
-              setErrorMessage({ type: "text", text: "message" });
-            }
-          });
+          setErrorMessage(err);
         });
     }
-  }, [packageName]);
+  }, [filePath, noChangelogFilename]);
 
   return { changelog, isLoading, errorMessage };
 };
+
+// Filtering
+// ------------------------------
 
 export const setQueryStringWithoutPageReload = qsValue => {
   const newurl =

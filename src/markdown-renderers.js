@@ -40,8 +40,7 @@ const headingStyles = [
   {
     color: color.N200,
     fontSize: "0.9em",
-    marginTop: "2em",
-    textTransform: "uppercase"
+    marginTop: "2em"
   }
 ];
 export const heading = ({ level, ...props }) => {
