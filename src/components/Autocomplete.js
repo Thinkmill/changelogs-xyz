@@ -114,15 +114,15 @@ export const Autocomplete = props => (
         css={{
           background: 0,
           border: 0,
-          left: 16,
+          left: 10,
           pointerEvents: "none",
           position: "absolute",
 
           "> svg": {
             fill: color.P100,
             marginTop: 3, // fix perceived center
-            height: 16,
-            width: 16
+            height: 24,
+            width: 24
           }
         }}
       >
@@ -154,6 +154,7 @@ const Dialog = ({ isOpen, ...props }) => (
       marginTop: 8,
       outline: 0,
       position: "absolute",
+      textAlign: "start",
       top: "100%",
       width: "100%",
       zIndex: 500
@@ -214,7 +215,7 @@ const Form = props => {
           boxSizing: "border-box",
           fontSize: "inherit",
           padding: 16,
-          paddingLeft: 48, // make room for the search icon
+          paddingLeft: 50, // make room for the search icon
           width: "100%",
 
           "::placeholder": {

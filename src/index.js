@@ -130,10 +130,8 @@ function App() {
           <Container>
             <Header>
               <BetaLabel />
-              <h1 css={{ color: "white", fontSize: 48, margin: 0 }}>
-                changelogs.xyz
-              </h1>
-              <p css={{ lineHeight: 1.6 }}>
+              <h1>changelogs.xyz</h1>
+              <p>
                 Search for any package on npm by name and we'll show you its
                 changelog!
               </p>
@@ -148,6 +146,11 @@ function App() {
                 </Fragment>
               )}
             </Header>
+            <Toc>
+              <TocItem href="#">2.5.2</TocItem>
+              <TocItem href="#">Minor Changes</TocItem>
+              <TocItem href="#">Patch Changes</TocItem>
+            </Toc>
           </Container>
         </Aside>
         <Main>
@@ -227,6 +230,8 @@ function App() {
 // Styled Components
 // ------------------------------
 
+// Layout
+
 const Layout = props => {
   return (
     <div
@@ -264,7 +269,7 @@ const Main = props => (
       color: color.N600,
       flex: 3,
       minWidth: 1, // fix weird bugs with children
-      padding: spacing.large,
+      padding: spacing.medium,
 
       "@media (min-width: 1024px)": {
         margin: spacing.large,
@@ -292,6 +297,67 @@ const Container = ({ width = 640, ...props }) => (
   />
 );
 
+// Header
+
+const Header = props => (
+  <header
+    css={{
+      marginTop: spacing.large,
+      paddingBottom: 24,
+
+      h1: {
+        color: "white",
+        fontSize: "calc(32px + 1vw)",
+        margin: 0,
+        textShadow: `1px 1px 2px ${color.P500}`
+      },
+      p: {
+        lineHeight: 1.6
+      },
+
+      "@media (min-width: 1024px)": {
+        textAlign: "end"
+      }
+    }}
+    {...props}
+  />
+);
+
+const Toc = props => (
+  <div
+    css={{
+      borderTop: `2px solid ${color.P300}`,
+      display: "none",
+      paddingTop: spacing.medium,
+      position: "sticky",
+      textAlign: "end",
+      top: -2,
+
+      "@media (min-width: 1024px)": {
+        display: "block"
+      }
+    }}
+    {...props}
+  />
+);
+/* eslint-disable jsx-a11y/anchor-has-content */
+const TocItem = props => (
+  <a
+    css={{
+      color: color.P50,
+      display: "block",
+      padding: spacing.xsmall,
+      textDecoration: "none",
+      ":hover": {
+        textDecoration: "none"
+      }
+    }}
+    {...props}
+  />
+);
+
+// Misc
+
 const BetaLabel = () => (
   <span
     css={{
@@ -300,7 +366,8 @@ const BetaLabel = () => (
       borderRadius: 999,
       fontSize: "0.85em",
       fontWeight: 500,
-      padding: "0.2em 0.8em"
+      padding: "0.2em 0.8em",
+      textShadow: `1px 1px 0 ${color.T100}`
     }}
   >
     Beta
@@ -410,17 +477,6 @@ const ErrorMessage = ({ type, text, packageName }) => {
   }
   return <p>This is a completely unknown error</p>;
 };
-
-const Header = props => (
-  <header
-    css={{
-      marginBottom: 32,
-      marginTop: spacing.large,
-      paddingBottom: 24
-    }}
-    {...props}
-  />
-);
 
 const visiblyHiddenStyles = {
   border: 0,
