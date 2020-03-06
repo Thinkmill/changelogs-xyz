@@ -7,7 +7,6 @@ import {
 import { Fragment, useMemo } from "react";
 import ReactDOM from "react-dom";
 import ReactMarkdown from "react-markdown";
-import PackageSearch from "./PackageSearch";
 
 import * as markdownRenderers from "./markdown-renderers";
 import {
@@ -18,23 +17,65 @@ import {
 import { color } from "./theme";
 import "./index.css";
 
+import { Autocomplete } from "./components/Autocomplete";
 import { Button } from "./components/Button";
 import { Loading } from "./components/Loading";
+
+const onSearchSubmit = value => {
+  if (!value.changelogFilename) {
+    return;
+  }
+
+  const url = `${window.location.origin}/${value.name}`;
+  window.location.href = url;
+};
+
+const HeadLinks = ({ styles = {} }) => (
+  <div
+    css={{
+      display: "flex",
+      justifyContent: "flex-end",
+      ...styles
+    }}
+  >
+    {/* TODO remove text decoration - maybe make it larger? */}
+    <a
+      href={window.location.origin}
+      css={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center"
+      }}
+    >
+      <span>changelogs.xyz</span>
+      <span css={{ width: 8 }} />
+      <img
+        css={{ maxHeight: 28 }}
+        src="/changelogs-xyz.svg"
+        alt="changelogs-xyz logo"
+      />
+    </a>
+  </div>
+);
 
 const Home = () => {
   return (
     <Container>
-      <BetaLabel />
-      <h1 css={{ color: color.N800, margin: 0 }}>changelogs.xyz</h1>
-      <p>
-        Thanks for using changelogs.xyz! Just add a package name to the URL and
-        we'll (try to) show you its changelog!
+      <HeadLinks styles={{ paddingBottom: 60 }} />
+      <div
+        css={{
+          padding: "20px 100px",
+          display: "flex",
+          justifyContent: "center"
+        }}
+      >
+        <img src="/changelogs-xyz.svg" alt="changelogs xyz" />
+      </div>
+      <h1 css={{ textAlign: "center" }}>changelogs.xyz</h1>
+      <p css={{ textAlign: "center", paddingBottom: 36 }}>
+        See changelogs for any npm package, easily
       </p>
-      <p>For example, to see the "changesets" changelog you could go to:</p>
-      <Button href="/@changesets/cli">@changesets/cli</Button>
-      <Button href="/react">react</Button>
-      {/* <Button href="/@keystonejs/keystone">keystone JS</Button> */}
-      <PackageSearch />
+      <Autocomplete onSubmit={onSearchSubmit} />
     </Container>
   );
 };
@@ -90,13 +131,16 @@ function App() {
     <Fragment>
       <Container>
         <Header>
-          <div css={{ display: "flex", justifyContent: "space-between" }}>
-            <BetaLabel />
-            <a href={window.location.origin}>changelogs.xyz</a>
+          <HeadLinks />
+          <div css={{ paddingBottom: 32 }}>
+            <h1 css={{ color: color.N800, margin: 0, textAlign: "center" }}>
+              <span css={{ color: color.P200 }}>{packageAtributes.name}</span>
+            </h1>
           </div>
-          <h1 css={{ color: color.N800, margin: 0, textAlign: "center" }}>
-            <span css={{ color: color.P200 }}>{packageAtributes.name}</span>
-          </h1>
+          <Autocomplete
+            onSubmit={onSearchSubmit}
+            initialInputValue={packageName}
+          />
         </Header>
 
         {combinedLoading && (
@@ -126,7 +170,7 @@ function App() {
         {!combinedLoading && !noChangelogFilename && (
           <Fragment>
             {canDivideChangelog ? (
-              <div css={{}}>
+              <div>
                 <label htmlFor="filter-input" css={visiblyHiddenStyles}>
                   Experimental semver filter
                 </label>
@@ -166,21 +210,6 @@ function App() {
 
 // Styled Components
 // ------------------------------
-
-const BetaLabel = () => (
-  <span
-    css={{
-      backgroundColor: color.T300,
-      color: "white",
-      borderRadius: 999,
-      fontSize: "0.85em",
-      fontWeight: 500,
-      padding: "0.2em 0.8em"
-    }}
-  >
-    Beta
-  </span>
-);
 
 const IssueLink = ({ type, ...props }) => {
   const url = "https://github.com/Thinkmill/changelogs-xyz/issues/new";
