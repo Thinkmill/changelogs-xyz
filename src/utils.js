@@ -21,7 +21,7 @@ export const searchClient = algoliasearch(
 const index = searchClient.initIndex("npm-search");
 
 export const algoliaSearchParameters = {
-  attributesToRetrieve: ["name", "version", "changelogFilename"],
+  attributesToRetrieve: ["name", "description", "version", "changelogFilename"],
   analyticsTags: ["http://changelogs.xyz"]
 };
 

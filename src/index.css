@@ -1,5 +1,37 @@
+:root {
+  --P50: #eae6ff;
+  --P75: #c0b6f2;
+  --P100: #998dd9;
+  --P200: #8777d9;
+  --P300: #6554c0;
+  --P400: #5243aa;
+  --P500: #403294;
+
+  --N0: #ffffff;
+  --N10: #fafbfc;
+  --N20: #f4f5f7;
+  --N30: #ebecf0;
+  --N40: #dfe1e6;
+  --N50: #c1c7d0;
+  --N60: #b3bac5;
+  --N70: #a5adba;
+  --N80: #97a0af;
+  --N90: #8993a4;
+  --N100: #7a869a;
+  --N200: #6b778c;
+  --N300: #5e6c84;
+  --N400: #505f79;
+  --N500: #42526e;
+  --N600: #344563;
+  --N700: #253858;
+  --N800: #172b4d;
+  --N900: #091E4;
+}
+
 body {
-  color: #344563;
+  background-color: var(--P400);
+  background-image: linear-gradient(135deg, var(--P400), var(--P500));
+  color: var(--P50);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
@@ -11,10 +43,19 @@ body {
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
 img {
+  height: auto;
   max-width: 100%;
+}
+pre {
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 0.85em;
+  line-height: 1.4;
+  overflow: auto;
+  width: 100%;
 }

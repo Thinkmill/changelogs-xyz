@@ -1,3 +1,6 @@
+// Color
+// ------------------------------
+
 export const color = {
   // Reds
   R50: "#FFEBE6",
@@ -75,11 +78,23 @@ export const color = {
   N900: "#091E42"
 };
 
-const BASE_UNIT = 4;
+// Spacing
+// ------------------------------
+
+const BASE_UNIT = 8;
 export const spacing = {
   xsmall: BASE_UNIT,
   small: BASE_UNIT * 2,
   medium: BASE_UNIT * 3,
   large: BASE_UNIT * 4,
   xlarge: BASE_UNIT * 6
+};
+
+// Radii
+// ------------------------------
+
+export const radii = {
+  small: 4,
+  medium: 8,
+  large: 16
 };

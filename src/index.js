@@ -14,7 +14,7 @@ import {
   useGetChangelog,
   useGetPackageAttributes
 } from "./utils";
-import { color } from "./theme";
+import { color, radii, spacing } from "./theme";
 import "./index.css";
 
 import { Autocomplete } from "./components/Autocomplete";
@@ -123,93 +123,189 @@ function App() {
 
   const combinedLoading = fetchingPackageAttributes || isLoading;
 
-  if (!packageName) {
-    return <Home />;
-  }
-
   return (
-    <Fragment>
-      <Container>
-        <Header>
-          <HeadLinks />
-          <div css={{ paddingBottom: 32 }}>
-            <h1 css={{ color: color.N800, margin: 0, textAlign: "center" }}>
-              <span css={{ color: color.P200 }}>{packageAtributes.name}</span>
-            </h1>
-          </div>
-          <Autocomplete
-            onSubmit={onSearchSubmit}
-            initialInputValue={packageName}
-          />
-        </Header>
-
-        {combinedLoading && (
-          <div css={{ paddingTop: 100, textAlign: "center" }}>
-            <Loading />
-            <p css={{ color: color.N300, fontWeight: "500", fontSize: 24 }}>
-              Fetching the changelog...
-            </p>
-          </div>
-        )}
-
-        {noChangelogFilename && (
-          <div>
-            <div css={{ padding: "20px 100px" }}>
-              <img src="/empty-box.svg" alt="Illustration: an empty box" />
-            </div>
-            <h2 css={{ color: color.N800 }}>
-              Couldn't load changelog for{" "}
-              <span css={{ color: color.P200 }}>{packageAtributes.name}</span>
-            </h2>
-            <ErrorMessage
-              packageName={packageAtributes.name}
-              type="filenotfound"
-            />
-          </div>
-        )}
-        {!combinedLoading && !noChangelogFilename && (
-          <Fragment>
-            {canDivideChangelog ? (
-              <div>
-                <label htmlFor="filter-input" css={visiblyHiddenStyles}>
-                  Experimental semver filter
-                </label>
-                <Input
-                  id="filter-input"
-                  type="search"
-                  placeholder={'e.g. "> 1.0.6 <= 3.0.2"'}
-                  onChange={event => {
-                    setSearchValue(event.target.value);
-                  }}
-                  value={searchValue}
-                />
-              </div>
-            ) : null}
-            <Logs>
-              {!combinedLoading && canDivideChangelog ? (
-                filteredChangelog.map(({ version, content }) => (
-                  <ReactMarkdown
-                    key={version}
-                    source={content}
-                    renderers={markdownRenderers}
-                  />
-                ))
-              ) : (
-                <ReactMarkdown
-                  source={changelog}
-                  renderers={markdownRenderers}
-                />
+    <Container width={1340}>
+      <Layout>
+        <Aside>
+          <Container>
+            <Header>
+              <BetaLabel />
+              <h1 css={{ color: "white", fontSize: 48, margin: 0 }}>
+                changelogs.xyz
+              </h1>
+              <p css={{ lineHeight: 1.6 }}>
+                Search for any package on npm by name and we'll show you its
+                changelog!
+              </p>
+              <Autocomplete
+                onSubmit={onSearchSubmit}
+                initialInputValue={packageName}
+              />
+              {changelog && (
+                <Fragment>
+                  <h2>{packageAtributes.name}</h2>
+                  <p>{packageAtributes.description}</p>
+                </Fragment>
               )}
-            </Logs>
-          </Fragment>
-        )}
-      </Container>
-    </Fragment>
+            </Header>
+          </Container>
+        </Aside>
+        <Main>
+          {!packageName && (
+            <div
+              css={{
+                alignItems: "center",
+                display: "flex",
+                height: "100%",
+                justifyContent: "center",
+                padding: spacing.large
+              }}
+            >
+              <img
+                alt="Illustration: a magnifying glass over documents"
+                css={{ maxWidth: 320, marginTop: -40 }}
+                src="/magnify-documents.svg"
+              />
+            </div>
+          )}
+
+          {packageName && noChangelogFilename && (
+            <div>
+              <div css={{ padding: "20px 100px" }}>
+                <img src="/empty-box.svg" alt="Illustration: an empty box" />
+              </div>
+              <h2 css={{ color: color.N800 }}>Something went wrong...</h2>
+              <ErrorMessage packageName={packageName} type="filenotfound" />
+              {/* <p>If you believe this to be an error please raise an issue:</p>
+              <IssueLink type="filenotfound">Raise an Issue</IssueLink> */}
+            </div>
+          )}
+
+          {combinedLoading && (
+            <div css={{ paddingTop: 100, textAlign: "center" }}>
+              <Loading />
+              <p css={{ color: color.N300, fontWeight: "500", fontSize: 24 }}>
+                Fetching the changelog...
+              </p>
+            </div>
+          )}
+
+          {changelog ? (
+            <div css={{ marginBottom: spacing.medium }}>
+              <label htmlFor="filter-input" css={visiblyHiddenStyles}>
+                Experimental semver filter
+              </label>
+              <Input
+                id="filter-input"
+                type="search"
+                placeholder={'e.g. "> 1.0.6 <= 3.0.2"'}
+                onChange={event => {
+                  setSearchValue(event.target.value);
+                }}
+                value={searchValue}
+              />
+            </div>
+          ) : null}
+
+          {canDivideChangelog ? (
+            filteredChangelog.map(({ version, content }) => (
+              <ReactMarkdown
+                key={version}
+                source={content}
+                renderers={markdownRenderers}
+              />
+            ))
+          ) : (
+            <ReactMarkdown source={changelog} renderers={markdownRenderers} />
+          )}
+        </Main>
+      </Layout>
+    </Container>
   );
 }
 
 // Styled Components
 // ------------------------------
+
+const Layout = props => {
+  return (
+    <div
+      css={{
+        display: "flex",
+        minHeight: "100vh",
+        flexDirection: "column",
+
+        "@media (min-width: 1024px)": {
+          flexDirection: "row"
+        }
+      }}
+      {...props}
+    />
+  );
+};
+const Aside = props => {
+  return (
+    <div
+      css={{
+        display: "flex",
+        flex: 2
+      }}
+      {...props}
+    />
+  );
+};
+
+const Main = props => (
+  <main
+    css={{
+      backgroundColor: "white",
+      borderRadius: radii.large,
+      boxShadow: `0px 5px 40px rgba(0, 0, 0, 0.16)`,
+      color: color.N600,
+      flex: 3,
+      minWidth: 1, // fix weird bugs with children
+      padding: spacing.large,
+
+      "@media (min-width: 1024px)": {
+        margin: spacing.large,
+        padding: spacing.xlarge
+      }
+    }}
+    {...props}
+  />
+);
+
+const Container = ({ width = 640, ...props }) => (
+  <div
+    css={{
+      margin: "0 auto",
+      maxWidth: width,
+      paddingLeft: spacing.small,
+      paddingRight: spacing.small,
+
+      "@media (min-width: 1024px)": {
+        paddingLeft: spacing.medium,
+        paddingRight: spacing.medium
+      }
+    }}
+    {...props}
+  />
+);
+
+const BetaLabel = () => (
+  <span
+    css={{
+      backgroundColor: color.T300,
+      color: "black",
+      borderRadius: 999,
+      fontSize: "0.85em",
+      fontWeight: 500,
+      padding: "0.2em 0.8em"
+    }}
+  >
+    Beta
+  </span>
+);
 
 const IssueLink = ({ type, ...props }) => {
   const url = "https://github.com/Thinkmill/changelogs-xyz/issues/new";
@@ -315,38 +411,13 @@ const ErrorMessage = ({ type, text, packageName }) => {
   return <p>This is a completely unknown error</p>;
 };
 
-const Container = props => (
-  <div
-    css={{
-      margin: "0 auto",
-      maxWidth: 640,
-      padding: 24
-    }}
-    {...props}
-  />
-);
-
 const Header = props => (
   <header
     css={{
-      borderBottom: `2px solid ${color.N30}`,
       marginBottom: 32,
+      marginTop: spacing.large,
       paddingBottom: 24
     }}
-    {...props}
-  />
-);
-
-const Logs = props => (
-  <main
-    css={
-      {
-        // backgroundColor: "white",
-        // border: `2px solid ${color.N30}`,
-        // borderRadius: 8,
-        // padding: 32
-      }
-    }
     {...props}
   />
 );
