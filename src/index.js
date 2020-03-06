@@ -360,6 +360,10 @@ const Toc = props => (
 );
 /* eslint-disable jsx-a11y/anchor-has-content */
 const TocItem = ({ children, level, ...props }) => {
+  if (level > 3) {
+    return null;
+  }
+
   const text = Array.isArray(children) ? children[0] : children;
 
   if (!text) {
