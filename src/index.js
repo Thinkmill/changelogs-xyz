@@ -143,7 +143,7 @@ function App() {
               />
               {changelog && (
                 <Fragment>
-                  <h2>{packageAtributes.name}</h2>
+                  <h2 css={{ color: "white" }}>{packageAtributes.name}</h2>
                   <p>{packageAtributes.description}</p>
                 </Fragment>
               )}

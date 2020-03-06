@@ -30,7 +30,6 @@
 
 body {
   background-color: var(--P400);
-  background-image: linear-gradient(135deg, var(--P400), var(--P500));
   color: var(--P50);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
