@@ -16,7 +16,7 @@ import { algoliaSearchParameters, searchClient } from "../utils";
 
 class UnconnectedAutocomplete extends Component {
   state = {
-    value: this.props.currentRefinement || this.props.initialInputValue
+    value: this.props.currentRefinement || this.props.initialInputValue || ""
   };
 
   onChange = (event, { newValue }) => {
@@ -238,6 +238,7 @@ const Form = props => {
           padding: 0
         },
         ".react-autosuggest__suggestion": {
+          cursor: "pointer",
           padding: 16
         },
         ".react-autosuggest__suggestion--first": {
