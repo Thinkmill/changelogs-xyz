@@ -225,10 +225,22 @@ const Hit = ({ hit }) => {
           <Emoji emoji="🦋" label="changelog-exists" />
         </a>
       ) : (
-        <div css={{ ...hitCss, color: color.N100 }}>
+        <a
+          href={`${window.location.origin}/${name}`}
+          css={{
+            ...hitCss,
+            color: color.N100,
+            backgroundColor: color.R50,
+            ":hover": {
+              backgroundColor: color.R75
+            }
+          }}
+        >
           <span>{name}</span>
-          <Emoji emoji="🐛" label="no-changelog" />
-        </div>
+          <span>
+            (no changelog found <Emoji emoji="🐛" label="no-changelog" />)
+          </span>
+        </a>
       )}
     </Fragment>
   );
