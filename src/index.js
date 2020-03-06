@@ -7,6 +7,7 @@ import {
 import { Fragment, useMemo } from "react";
 import ReactDOM from "react-dom";
 import ReactMarkdown from "react-markdown";
+import slugify from "slugify";
 
 import * as markdownRenderers from "./markdown-renderers";
 import {
@@ -146,11 +147,21 @@ function App() {
                 </Fragment>
               )}
             </Header>
-            <Toc>
-              <TocItem href="#">2.5.2</TocItem>
-              <TocItem href="#">Minor Changes</TocItem>
-              <TocItem href="#">Patch Changes</TocItem>
-            </Toc>
+            {changelog && (
+              <Toc>
+                {/* not sure why this isn't working... */}
+                <ReactMarkdown
+                  source={changelog}
+                  allowedTypes={["heading"]}
+                  renderers={{
+                    heading: props => <TocItem {...props} />
+                  }}
+                />
+                <TocItem level={2}>2.5.2</TocItem>
+                <TocItem level={3}>Minor Changes</TocItem>
+                <TocItem level={3}>Patch Changes</TocItem>
+              </Toc>
+            )}
           </Container>
         </Aside>
         <Main>
@@ -159,16 +170,21 @@ function App() {
               css={{
                 alignItems: "center",
                 display: "flex",
-                height: "100%",
+                flexDirection: "column",
+                flex: 1,
                 justifyContent: "center",
-                padding: spacing.large
+                padding: `${spacing.large}px 6vw`,
+                textAlign: "center"
               }}
             >
               <img
                 alt="Illustration: a magnifying glass over documents"
-                css={{ maxWidth: 320, marginTop: -40 }}
+                css={{ maxWidth: 320, marginBottom: 24, marginTop: -64 }}
                 src="/magnify-documents.svg"
               />
+              <h2 css={{ color: color.N100, fontWeight: 300 }}>
+                Search for a package and the changelog will appear here...
+              </h2>
             </div>
           )}
 
@@ -267,6 +283,8 @@ const Main = props => (
       borderRadius: radii.large,
       boxShadow: `0px 5px 40px rgba(0, 0, 0, 0.16)`,
       color: color.N600,
+      display: "flex",
+      flexDirection: "column",
       flex: 3,
       minWidth: 1, // fix weird bugs with children
       padding: spacing.medium,
@@ -341,20 +359,37 @@ const Toc = props => (
   />
 );
 /* eslint-disable jsx-a11y/anchor-has-content */
-const TocItem = props => (
-  <a
-    css={{
-      color: color.P50,
-      display: "block",
-      padding: spacing.xsmall,
-      textDecoration: "none",
-      ":hover": {
-        textDecoration: "none"
-      }
-    }}
-    {...props}
-  />
-);
+const TocItem = ({ children, level, ...props }) => {
+  const text = Array.isArray(children) ? children[0] : children;
+
+  if (!text) {
+    return null;
+  }
+
+  const href = `#${slugify(text, { lower: true })}`;
+
+  return (
+    <a
+      href={href}
+      css={{
+        color: color.P50,
+        display: "block",
+        fontSize: level <= 2 ? 16 : 14,
+        fontWeight: level <= 2 ? "bold" : "normal",
+        paddingBottom: 4,
+        paddingTop: 4,
+        textDecoration: "none",
+
+        ":hover": {
+          textDecoration: "none"
+        }
+      }}
+      {...props}
+    >
+      {children}
+    </a>
+  );
+};
 
 // Misc
 
