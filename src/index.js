@@ -15,9 +15,19 @@ import {
 import { color } from "./theme";
 import "./index.css";
 
+import { Autocomplete } from "./components/Autocomplete";
 import { Button } from "./components/Button";
 import { Loading } from "./components/Loading";
 import { Switch } from "./components/Switch";
+
+const onSearchSubmit = value => {
+  if (!value.changelogFilename) {
+    return;
+  }
+
+  const url = `${window.location.origin}/${value.name}`;
+  window.location.href = url;
+};
 
 const Home = () => {
   return (
@@ -28,9 +38,7 @@ const Home = () => {
         Thanks for using changelogs.xyz! Just add a package name to the URL and
         we'll (try to) show you its changelog!
       </p>
-      <p>For example, to see the "changesets" changelog you could go to:</p>
-      <Button href="/@changesets/cli">@changesets/cli</Button>
-      <PackageSearch />
+      <Autocomplete onSubmit={onSearchSubmit} />
     </Container>
   );
 };
@@ -71,6 +79,10 @@ function App() {
             Thanks for using changelogs.xyz! Just add a package name to the URL
             and we'll (try to) show you its changelog!
           </p>
+          <Autocomplete
+            onSubmit={onSearchSubmit}
+            initialInputValue={window.location.pathname.replace("/", "")}
+          />
         </Header>
 
         {combinedLoading && (
