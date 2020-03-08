@@ -7,10 +7,10 @@ import {
 import { Fragment, useMemo } from "react";
 import ReactDOM from "react-dom";
 import ReactMarkdown from "react-markdown";
-import slugify from "slugify";
 
 import * as markdownRenderers from "./markdown-renderers";
 import {
+  getTextNodes,
   useFilterSearch,
   useGetChangelog,
   useGetPackageAttributes
@@ -140,27 +140,19 @@ function App() {
                 onSubmit={onSearchSubmit}
                 initialInputValue={packageName}
               />
-              {changelog && (
-                <Fragment>
-                  <h2 css={{ color: "white" }}>{packageAtributes.name}</h2>
-                  <p>{packageAtributes.description}</p>
-                </Fragment>
-              )}
             </Header>
             {changelog && (
-              <Toc>
-                {/* not sure why this isn't working... */}
-                <ReactMarkdown
-                  source={changelog}
-                  allowedTypes={["heading"]}
-                  renderers={{
-                    heading: props => <TocItem {...props} />
-                  }}
-                />
-                <TocItem level={2}>2.5.2</TocItem>
-                <TocItem level={3}>Minor Changes</TocItem>
-                <TocItem level={3}>Patch Changes</TocItem>
-              </Toc>
+              <Meta>
+                <h2 css={{ color: "white" }}>{packageAtributes.name}</h2>
+                <p>{packageAtributes.description}</p>
+                <Toc>
+                  <ReactMarkdown
+                    source={changelog}
+                    allowedTypes={["heading", "text", "link"]}
+                    renderers={{ heading: TocItem }}
+                  />
+                </Toc>
+              </Meta>
             )}
           </Container>
         </Aside>
@@ -286,6 +278,7 @@ const Main = props => (
       display: "flex",
       flexDirection: "column",
       flex: 3,
+      marginTop: spacing.large,
       minWidth: 1, // fix weird bugs with children
       padding: spacing.medium,
 
@@ -321,7 +314,6 @@ const Header = props => (
   <header
     css={{
       marginTop: spacing.large,
-      paddingBottom: 24,
 
       h1: {
         color: "white",
@@ -331,67 +323,102 @@ const Header = props => (
       },
       p: {
         lineHeight: 1.6
-      },
-
-      "@media (min-width: 1024px)": {
-        textAlign: "end"
       }
     }}
     {...props}
   />
 );
 
-const Toc = props => (
+const Meta = props => (
   <div
     css={{
-      borderTop: `2px solid ${color.P300}`,
+      boxSizing: "border-box",
       display: "none",
-      paddingTop: spacing.medium,
+      flexDirection: "column",
+      height: "100vh",
       position: "sticky",
-      textAlign: "end",
-      top: -2,
+      top: 0,
+
+      h2: {
+        color: "white",
+        paddingTop: spacing.medium,
+        margin: 0
+      },
+      p: {
+        lineHeight: 1.6
+      },
 
       "@media (min-width: 1024px)": {
-        display: "block"
+        display: "flex"
       }
+    }}
+    {...props}
+  />
+);
+const Toc = props => (
+  <ul
+    css={{
+      borderTop: `2px solid ${color.P300}`,
+      flex: 1,
+      listStyle: "none",
+      marginLeft: 0,
+      overflowY: "auto",
+      paddingBottom: spacing.medium,
+      paddingLeft: 0,
+      paddingTop: spacing.medium
     }}
     {...props}
   />
 );
 /* eslint-disable jsx-a11y/anchor-has-content */
-const TocItem = ({ children, level, ...props }) => {
+const TocItem = ({ level, ...props }) => {
   if (level > 3) {
     return null;
   }
 
-  const text = Array.isArray(children) ? children[0] : children;
+  const variableStyles = [
+    null,
+    {
+      fontSize: 14,
+      fontWeight: "bold",
+      marginTop: 8
+    },
+    {
+      fontSize: 14,
+      fontWeight: "bold",
+      marginTop: 8
+    },
+    {
+      fontSize: 12,
+      fontWeight: "normal",
+      paddingLeft: 8
+    }
+  ];
 
-  if (!text) {
-    return null;
-  }
-
-  const href = `#${slugify(text, { lower: true })}`;
+  const [id, text] = getTextNodes(props);
+  const href = `#${id}`;
 
   return (
-    <a
-      href={href}
-      css={{
-        color: color.P50,
-        display: "block",
-        fontSize: level <= 2 ? 16 : 14,
-        fontWeight: level <= 2 ? "bold" : "normal",
-        paddingBottom: 4,
-        paddingTop: 4,
-        textDecoration: "none",
+    <li>
+      <a
+        href={href}
+        css={{
+          color: color.P50,
+          display: "block",
+          paddingBottom: 4,
+          paddingTop: 4,
+          textDecoration: "none",
+          ...variableStyles[level],
 
-        ":hover": {
-          textDecoration: "none"
-        }
-      }}
-      {...props}
-    >
-      {children}
-    </a>
+          ":hover": {
+            color: "white",
+            textDecoration: "underline"
+          }
+        }}
+      >
+        {text}
+      </a>
+    </li>
   );
 };
 

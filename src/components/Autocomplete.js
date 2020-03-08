@@ -96,7 +96,7 @@ export const Autocomplete = props => (
   <InstantSearch indexName="npm-search" searchClient={searchClient}>
     <Configure {...algoliaSearchParameters} />
     <Form
-      novalidate
+      noValidate
       role="search"
       action="/"
       method="get"

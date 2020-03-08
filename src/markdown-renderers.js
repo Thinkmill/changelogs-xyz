@@ -4,6 +4,7 @@ import { jsx } from "@emotion/core";
 
 import CodeBlock from "./Codeblock";
 import { color } from "./theme";
+import { getTextNodes } from "./utils";
 
 // Code
 // ------------------------------
@@ -42,14 +43,13 @@ const headingStyles = [
     marginTop: "2em",
 
     ":not(:first-of-type)": {
-      borderTop: `2px solid ${color.N40}`,
+      boxShadow: `0 -2px 0 ${color.N40}`,
       paddingTop: "2em"
     }
   },
   {
     color: color.N800,
-    fontSize: "1.2em",
-    marginTop: "2em"
+    fontSize: "1.2em"
   },
   {
     color: color.N800,
@@ -59,7 +59,9 @@ const headingStyles = [
 export const heading = ({ level, ...props }) => {
   const Tag = `h${Math.max(level, 2)}`; // strip h1
   const levelStyles = headingStyles[level];
-  return <Tag css={levelStyles} {...props} />;
+  const [id] = getTextNodes(props);
+
+  return <Tag css={levelStyles} id={id} {...props} />;
 };
 
 // Block Elements
