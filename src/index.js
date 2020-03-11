@@ -121,8 +121,6 @@ function App() {
     filteredChangelog
   } = useFilteredChangelog(changelog, searchValue);
 
-  console.log(changelog, canDivideChangelog);
-
   const combinedLoading = fetchingPackageAttributes || isLoading;
 
   if (!packageName) {
