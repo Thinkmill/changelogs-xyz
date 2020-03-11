@@ -84,7 +84,7 @@ const useFilteredChangelog = (changelog, range) => {
   let { splitChangelog, canDivideChangelog } = useMemo(() => {
     try {
       let splitChangelog = divideChangelog(changelog);
-      return { canDivideChangelog: true, splitChangelog };
+      return { canDivideChangelog: splitChangelog.length > 0, splitChangelog };
     } catch {
       return {
         canDivideChangelog: false
@@ -120,6 +120,8 @@ function App() {
     // splitChangelog,
     filteredChangelog
   } = useFilteredChangelog(changelog, searchValue);
+
+  console.log(changelog, canDivideChangelog);
 
   const combinedLoading = fetchingPackageAttributes || isLoading;
 

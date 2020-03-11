@@ -36,6 +36,7 @@ export const useGetPackageAttributes = packageName => {
     updateLoading(true);
     index.search(packageName, algoliaSearchParameters).then(({ hits }) => {
       let match = hits[0];
+
       if (match) {
         updateLoading(false);
         setPackageAttributes(match);
