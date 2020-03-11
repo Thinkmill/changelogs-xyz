@@ -1,10 +1,12 @@
 /** @jsx jsx */
 import { jsx } from "@emotion/core";
-import { useFilteredChangelog } from "@untitled-docs/changelog-utils";
-import { useState, Fragment } from "react";
+import {
+  divideChangelog,
+  filterChangelog
+} from "@untitled-docs/changelog-utils";
+import { Fragment, useMemo } from "react";
 import ReactDOM from "react-dom";
 import ReactMarkdown from "react-markdown";
-import PackageSearch from "./PackageSearch";
 
 import * as markdownRenderers from "./markdown-renderers";
 import {
@@ -18,7 +20,6 @@ import "./index.css";
 import { Autocomplete } from "./components/Autocomplete";
 import { Button } from "./components/Button";
 import { Loading } from "./components/Loading";
-import { Switch } from "./components/Switch";
 
 const onSearchSubmit = value => {
   if (!value.changelogFilename) {
@@ -29,24 +30,79 @@ const onSearchSubmit = value => {
   window.location.href = url;
 };
 
+const HeadLinks = ({ styles = {} }) => (
+  <div
+    css={{
+      display: "flex",
+      justifyContent: "flex-end",
+      ...styles
+    }}
+  >
+    {/* TODO remove text decoration - maybe make it larger? */}
+    <a
+      href={window.location.origin}
+      css={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center"
+      }}
+    >
+      <span>changelogs.xyz</span>
+      <span css={{ width: 8 }} />
+      <img
+        css={{ maxHeight: 28 }}
+        src="/changelogs-xyz.svg"
+        alt="changelogs-xyz logo"
+      />
+    </a>
+  </div>
+);
+
 const Home = () => {
   return (
     <Container>
-      <BetaLabel />
-      <h1 css={{ color: color.N800, margin: 0 }}>changelogs.xyz</h1>
-      <p>
-        Thanks for using changelogs.xyz! Just add a package name to the URL and
-        we'll (try to) show you its changelog!
+      <HeadLinks styles={{ paddingBottom: 60 }} />
+      <div
+        css={{
+          padding: "20px 100px",
+          display: "flex",
+          justifyContent: "center"
+        }}
+      >
+        <img src="/changelogs-xyz.svg" alt="changelogs xyz" />
+      </div>
+      <h1 css={{ textAlign: "center" }}>changelogs.xyz</h1>
+      <p css={{ textAlign: "center", paddingBottom: 36 }}>
+        See changelogs for any npm package, easily
       </p>
       <Autocomplete onSubmit={onSearchSubmit} />
     </Container>
   );
 };
 
+const useFilteredChangelog = (changelog, range) => {
+  let { splitChangelog, canDivideChangelog } = useMemo(() => {
+    try {
+      let splitChangelog = divideChangelog(changelog);
+      return { canDivideChangelog: true, splitChangelog };
+    } catch {
+      return {
+        canDivideChangelog: false
+      };
+    }
+  }, [changelog]);
+
+  let filteredChangelog = useMemo(
+    () => filterChangelog(splitChangelog, range),
+    [splitChangelog, range]
+  );
+
+  return { canDivideChangelog, splitChangelog, filteredChangelog };
+};
+
 function App() {
   const packageName = window.location.pathname.substr(1);
   const [searchValue, setSearchValue] = useFilterSearch();
-  const [filter, toggleFilter] = useState(!!searchValue);
 
   const {
     fetchingPackageAttributes,
@@ -54,12 +110,16 @@ function App() {
     noChangelogFilename
   } = useGetPackageAttributes(packageName);
 
-  const { changelog, isLoading, errorMessage } = useGetChangelog(
+  const { changelog, isLoading /* errorMessage */ } = useGetChangelog(
     packageAtributes.changelogFilename,
     noChangelogFilename
   );
 
-  const filteredChangelog = useFilteredChangelog(changelog, searchValue);
+  const {
+    canDivideChangelog,
+    // splitChangelog,
+    filteredChangelog
+  } = useFilteredChangelog(changelog, searchValue);
 
   const combinedLoading = fetchingPackageAttributes || isLoading;
 
@@ -71,17 +131,15 @@ function App() {
     <Fragment>
       <Container>
         <Header>
-          <BetaLabel />
-          <h1 css={{ color: color.N800, margin: 0 }}>
-            changelogs.xyz: {packageName}
-          </h1>
-          <p>
-            Thanks for using changelogs.xyz! Just add a package name to the URL
-            and we'll (try to) show you its changelog!
-          </p>
+          <HeadLinks />
+          <div css={{ paddingBottom: 32 }}>
+            <h1 css={{ color: color.N800, margin: 0, textAlign: "center" }}>
+              <span css={{ color: color.P200 }}>{packageAtributes.name}</span>
+            </h1>
+          </div>
           <Autocomplete
             onSubmit={onSearchSubmit}
-            initialInputValue={window.location.pathname.replace("/", "")}
+            initialInputValue={packageName}
           />
         </Header>
 
@@ -99,74 +157,52 @@ function App() {
             <div css={{ padding: "20px 100px" }}>
               <img src="/empty-box.svg" alt="Illustration: an empty box" />
             </div>
-            <h2 css={{ color: color.N800 }}>Something went wrong...</h2>
-            <ErrorMessage packageName={packageName} type="filenotfound" />
-            <p>If you believe this to be an error please raise an issue:</p>
-            <IssueLink type="filenotfound">Raise an Issue</IssueLink>
-          </div>
-        )}
-
-        {changelog && (
-          <div
-            css={{ display: "flex", alignItems: "center", marginBottom: 20 }}
-          >
-            <Switch
-              checked={filter}
-              onChange={toggleFilter}
-              id="filter-toggle"
-            />
-            <label htmlFor="filter-toggle" css={{ marginLeft: 10 }}>
-              Use experimental semver filter (
-              <a
-                href="https://github.com/Thinkmill/changelogs-xyz/blob/master/why-is-filter-experimental.md"
-                target="_blank"
-                rel="noopener noreferrer"
-                css={{
-                  color: color.B400,
-                  textDecoration: "none",
-                  ":hover": {
-                    color: color.B300,
-                    textDecoration: "underline"
-                  }
-                }}
-              >
-                this may crash the app
-              </a>
-              )
-            </label>
-          </div>
-        )}
-
-        {filter ? (
-          <div css={{}}>
-            <label htmlFor="filter-input" css={visiblyHiddenStyles}>
-              Experimental semver filter
-            </label>
-            <Input
-              id="filter-input"
-              type="search"
-              placeholder={'e.g. "> 1.0.6 <= 3.0.2"'}
-              onChange={event => {
-                setSearchValue(event.target.value);
-              }}
-              value={searchValue}
+            <h2 css={{ color: color.N800 }}>
+              Couldn't load changelog for{" "}
+              <span css={{ color: color.P200 }}>{packageAtributes.name}</span>
+            </h2>
+            <ErrorMessage
+              packageName={packageAtributes.name}
+              type="filenotfound"
             />
           </div>
-        ) : null}
-
-        <Logs>
-          {filter ? (
-            filteredChangelog.map(({ version, content }) => (
-              <ReactMarkdown
-                key={version}
-                source={content}
-                renderers={markdownRenderers}
-              />
-            ))
-          ) : (
-            <ReactMarkdown source={changelog} renderers={markdownRenderers} />
-          )}
-        </Logs>
+        )}
+        {!combinedLoading && !noChangelogFilename && (
+          <Fragment>
+            {canDivideChangelog ? (
+              <div>
+                <label htmlFor="filter-input" css={visiblyHiddenStyles}>
+                  Experimental semver filter
+                </label>
+                <Input
+                  id="filter-input"
+                  type="search"
+                  placeholder={'e.g. "> 1.0.6 <= 3.0.2"'}
+                  onChange={event => {
+                    setSearchValue(event.target.value);
+                  }}
+                  value={searchValue}
+                />
+              </div>
+            ) : null}
+            <Logs>
+              {!combinedLoading && canDivideChangelog ? (
+                filteredChangelog.map(({ version, content }) => (
+                  <ReactMarkdown
+                    key={version}
+                    source={content}
+                    renderers={markdownRenderers}
+                  />
+                ))
+              ) : (
+                <ReactMarkdown
+                  source={changelog}
+                  renderers={markdownRenderers}
+                />
+              )}
+            </Logs>
+          </Fragment>
+        )}
       </Container>
     </Fragment>
   );
@@ -174,21 +210,6 @@ function App() {
 
 // Styled Components
 // ------------------------------
-
-const BetaLabel = () => (
-  <span
-    css={{
-      backgroundColor: color.T300,
-      color: "white",
-      borderRadius: 999,
-      fontSize: "0.85em",
-      fontWeight: 500,
-      padding: "0.2em 0.8em"
-    }}
-  >
-    Beta
-  </span>
-);
 
 const IssueLink = ({ type, ...props }) => {
   const url = "https://github.com/Thinkmill/changelogs-xyz/issues/new";
@@ -224,6 +245,26 @@ const Input = props => (
   />
 );
 
+const fileOptions = [
+  "CHANGELOG.md",
+  "ChangeLog.md",
+  "changelog.md",
+  "changelog.markdown",
+  "CHANGELOG",
+  "ChangeLog",
+  "changelog",
+  "CHANGES.md",
+  "changes.md",
+  "Changes.md",
+  "CHANGES",
+  "changes",
+  "Changes",
+  "HISTORY.md",
+  "history.md",
+  "HISTORY",
+  "history"
+];
+
 const ErrorMessage = ({ type, text, packageName }) => {
   if (type === "text") {
     return <p>{text}</p>;
@@ -231,18 +272,35 @@ const ErrorMessage = ({ type, text, packageName }) => {
 
   if (type === "filenotfound") {
     return (
-      <p>
-        We couldn't resolve the file. It could just be a typo, or we may not
-        support the format yet. You can check over on{" "}
-        <a
-          href={`https://unpkg.com/browse/${packageName}/`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          unpkg
-        </a>{" "}
-        to see if we missed it.
-      </p>
+      <Fragment>
+        <p>
+          We couldn't find a changelog file for this package. You can see what
+          files it has on{" "}
+          <a
+            href={`https://unpkg.com/browse/${packageName}/`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            unpkg
+          </a>{" "}
+          to see if we missed it.
+        </p>
+        <p>We support showing changelogs written to the following files:</p>
+        <ul>
+          {fileOptions.map(file => (
+            <li key={file}>{file}</li>
+          ))}
+        </ul>
+        <p>
+          If you think we should have found this changelog file, please raise an
+          issue:
+        </p>
+        <IssueLink type="filenotfound">Raise an Issue</IssueLink>
+        <p>
+          If you are this package's maintainer and want some advice on getting
+          started with adding changelogs, <a>we need a place to link to</a>
+        </p>
+      </Fragment>
     );
   }
 
