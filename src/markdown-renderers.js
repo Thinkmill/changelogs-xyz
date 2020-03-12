@@ -7,6 +7,9 @@ import githubTheme from 'prism-react-renderer/themes/github';
 import { color } from './theme';
 import { getTextNodes } from './utils';
 
+const mdMax = '@media (max-width: 1023px)';
+const mdMin = '@media (min-width: 1024px)';
+
 // Code
 // ------------------------------
 
@@ -21,7 +24,10 @@ export const code = ({ value, language }) => {
       theme={githubTheme}
     >
       {({ className, style, tokens, getLineProps, getTokenProps }) => (
-        <pre className={className} style={{ ...style, padding: '20px' }}>
+        <pre
+          className={className}
+          style={{ ...style, padding: '10px', [mdMin]: { padding: '20px' } }}
+        >
           {tokens.map((line, i) => (
             <div key={i} {...getLineProps({ line, key: i })}>
               {line.map((token, key) => (
@@ -48,6 +54,10 @@ export const inlineCode = ({ inline, value, ...props }) => (
       '> a': {
         color: 'inherit',
       },
+
+      [mdMax]: {
+        wordBreak: 'break-word',
+      },
     }}
     {...props}
   />
@@ -73,7 +83,8 @@ const headingStyles = [
   },
   {
     color: color.N800,
-    fontSize: '1.2em',
+    marginTop: 0,
+    paddingTop: '1rem', // stop linked h3 butting up against the viewport
   },
   {
     color: color.N800,
@@ -105,6 +116,11 @@ export const list = ({ depth, ordered, start, tight, ...props }) => {
     <Tag
       css={{
         lineHeight: 1.6,
+        paddingLeft: '1.2rem',
+
+        [mdMax]: {
+          wordBreak: 'break-word',
+        },
       }}
       {...props}
     />
@@ -124,6 +140,10 @@ export const link = props => (
       ':hover': {
         color: color.P300,
         textDecoration: 'underline',
+      },
+
+      [mdMax]: {
+        wordBreak: 'break-word',
       },
     }}
     {...props}

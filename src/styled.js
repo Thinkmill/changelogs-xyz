@@ -4,7 +4,8 @@ import { jsx } from '@emotion/core';
 
 import { color, radii, spacing } from './theme';
 
-const MD_UP = '@media (min-width: 1024px)';
+const mdMax = '@media (max-width: 1023px)';
+const mdMin = '@media (min-width: 1024px)';
 
 // Layout
 
@@ -16,7 +17,7 @@ export const Layout = props => {
         minHeight: '100vh',
         flexDirection: 'column',
 
-        [MD_UP]: {
+        [mdMin]: {
           flexDirection: 'row',
         },
       }}
@@ -30,7 +31,7 @@ export const Aside = props => {
       css={{
         display: 'flex',
 
-        [MD_UP]: {
+        [mdMin]: {
           flex: 2,
         },
       }}
@@ -52,9 +53,9 @@ export const Main = props => (
       marginBottom: spacing.medium,
       marginTop: spacing.large,
       minWidth: 1, // fix weird bugs with children
-      padding: spacing.medium,
+      padding: spacing.small,
 
-      [MD_UP]: {
+      [mdMin]: {
         margin: spacing.large,
         padding: spacing.xlarge,
       },
@@ -68,10 +69,10 @@ export const Container = ({ width = 640, ...props }) => (
     css={{
       margin: '0 auto',
       maxWidth: width,
-      paddingLeft: spacing.small,
-      paddingRight: spacing.small,
+      paddingLeft: spacing.xsmall,
+      paddingRight: spacing.xsmall,
 
-      [MD_UP]: {
+      [mdMin]: {
         paddingLeft: spacing.medium,
         paddingRight: spacing.medium,
       },
@@ -120,7 +121,7 @@ export const Meta = props => (
         lineHeight: 1.6,
       },
 
-      [MD_UP]: {
+      [mdMin]: {
         display: 'flex',
       },
     }}
