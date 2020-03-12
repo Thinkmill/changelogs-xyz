@@ -117,10 +117,6 @@ export const list = ({ depth, ordered, start, tight, ...props }) => {
       css={{
         lineHeight: 1.6,
         paddingLeft: '1.2rem',
-
-        [mdMax]: {
-          wordBreak: 'break-word',
-        },
       }}
       {...props}
     />
