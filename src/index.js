@@ -1,26 +1,28 @@
 /** @jsx jsx */
-import { jsx } from "@emotion/core";
+import { jsx } from '@emotion/core';
 import {
   divideChangelog,
-  filterChangelog
-} from "@untitled-docs/changelog-utils";
-import { Fragment, useMemo } from "react";
-import ReactDOM from "react-dom";
-import ReactMarkdown from "react-markdown";
+  filterChangelog,
+} from '@untitled-docs/changelog-utils';
+import { Fragment, useMemo } from 'react';
+import ReactDOM from 'react-dom';
+import ReactMarkdown from 'react-markdown';
 
-import * as markdownRenderers from "./markdown-renderers";
+import * as markdownRenderers from './markdown-renderers';
 import {
   getTextNodes,
   useFilterSearch,
   useGetChangelog,
-  useGetPackageAttributes
-} from "./utils";
-import { color, radii, spacing } from "./theme";
-import "./index.css";
+  useGetPackageAttributes,
+} from './utils';
+import { color, radii, spacing } from './theme';
+import './index.css';
 
-import { Autocomplete } from "./components/Autocomplete";
-import { Button } from "./components/Button";
-import { Loading } from "./components/Loading";
+import { Autocomplete } from './components/Autocomplete';
+import { Button } from './components/Button';
+import { Loading } from './components/Loading';
+
+const MD_UP = '@media (min-width: 1024px)';
 
 const onSearchSubmit = value => {
   if (!value.changelogFilename) {
@@ -31,56 +33,6 @@ const onSearchSubmit = value => {
   window.location.href = url;
 };
 
-const HeadLinks = ({ styles = {} }) => (
-  <div
-    css={{
-      display: "flex",
-      justifyContent: "flex-end",
-      ...styles
-    }}
-  >
-    {/* TODO remove text decoration - maybe make it larger? */}
-    <a
-      href={window.location.origin}
-      css={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center"
-      }}
-    >
-      <span>changelogs.xyz</span>
-      <span css={{ width: 8 }} />
-      <img
-        css={{ maxHeight: 28 }}
-        src="/changelogs-xyz.svg"
-        alt="changelogs-xyz logo"
-      />
-    </a>
-  </div>
-);
-
-const Home = () => {
-  return (
-    <Container>
-      <HeadLinks styles={{ paddingBottom: 60 }} />
-      <div
-        css={{
-          padding: "20px 100px",
-          display: "flex",
-          justifyContent: "center"
-        }}
-      >
-        <img src="/changelogs-xyz.svg" alt="changelogs xyz" />
-      </div>
-      <h1 css={{ textAlign: "center" }}>changelogs.xyz</h1>
-      <p css={{ textAlign: "center", paddingBottom: 36 }}>
-        See changelogs for any npm package, easily
-      </p>
-      <Autocomplete onSubmit={onSearchSubmit} />
-    </Container>
-  );
-};
-
 const useFilteredChangelog = (changelog, range) => {
   let { splitChangelog, canDivideChangelog } = useMemo(() => {
     try {
@@ -88,7 +40,7 @@ const useFilteredChangelog = (changelog, range) => {
       return { canDivideChangelog: splitChangelog.length > 0, splitChangelog };
     } catch {
       return {
-        canDivideChangelog: false
+        canDivideChangelog: false,
       };
     }
   }, [changelog]);
@@ -103,12 +55,12 @@ const useFilteredChangelog = (changelog, range) => {
 
 function App() {
   const packageName = window.location.pathname.substr(1);
-  const [searchValue, setSearchValue] = useFilterSearch();
+  const [searchValue, setSearchValue] = useFilterSearch('');
 
   const {
     fetchingPackageAttributes,
     packageAtributes,
-    noChangelogFilename
+    noChangelogFilename,
   } = useGetPackageAttributes(packageName);
 
   const { changelog, isLoading /* errorMessage */ } = useGetChangelog(
@@ -119,10 +71,14 @@ function App() {
   const {
     canDivideChangelog,
     // splitChangelog,
-    filteredChangelog
+    filteredChangelog,
   } = useFilteredChangelog(changelog, searchValue);
 
   const combinedLoading = fetchingPackageAttributes || isLoading;
+  const mdSource =
+    searchValue && canDivideChangelog
+      ? filteredChangelog.map(({ content }) => content).join('')
+      : changelog;
 
   return (
     <Container width={1340}>
@@ -143,15 +99,9 @@ function App() {
             </Header>
             {changelog && (
               <Meta>
-                <h2 css={{ color: "white" }}>{packageAtributes.name}</h2>
+                <h2 css={{ color: 'white' }}>{packageAtributes.name}</h2>
                 <p>{packageAtributes.description}</p>
-                <Toc>
-                  <ReactMarkdown
-                    source={changelog}
-                    allowedTypes={["heading", "text", "link"]}
-                    renderers={{ heading: TocItem }}
-                  />
-                </Toc>
+                <Toc source={mdSource} />
               </Meta>
             )}
           </Container>
@@ -160,18 +110,23 @@ function App() {
           {!packageName && (
             <div
               css={{
-                alignItems: "center",
-                display: "flex",
-                flexDirection: "column",
+                alignItems: 'center',
+                display: 'flex',
+                flexDirection: 'column',
                 flex: 1,
-                justifyContent: "center",
+                justifyContent: 'center',
                 padding: `${spacing.large}px 6vw`,
-                textAlign: "center"
+                textAlign: 'center',
               }}
             >
               <img
                 alt="Illustration: a magnifying glass over documents"
-                css={{ maxWidth: 320, marginBottom: 24, marginTop: -64 }}
+                css={{
+                  marginBottom: 24,
+                  marginTop: -64,
+
+                  [MD_UP]: { maxWidth: 320 },
+                }}
                 src="/magnify-documents.svg"
               />
               <h2 css={{ color: color.N100, fontWeight: 300 }}>
@@ -182,7 +137,7 @@ function App() {
 
           {packageName && noChangelogFilename && (
             <div>
-              <div css={{ padding: "20px 100px" }}>
+              <div css={{ padding: '20px 100px' }}>
                 <img src="/empty-box.svg" alt="Illustration: an empty box" />
               </div>
               <h2 css={{ color: color.N800 }}>Something went wrong...</h2>
@@ -193,9 +148,9 @@ function App() {
           )}
 
           {combinedLoading && (
-            <div css={{ paddingTop: 100, textAlign: "center" }}>
+            <div css={{ paddingTop: 100, textAlign: 'center' }}>
               <Loading />
-              <p css={{ color: color.N300, fontWeight: "500", fontSize: 24 }}>
+              <p css={{ color: color.N300, fontWeight: '500', fontSize: 24 }}>
                 Fetching the changelog...
               </p>
             </div>
@@ -218,17 +173,7 @@ function App() {
             </div>
           ) : null}
 
-          {canDivideChangelog ? (
-            filteredChangelog.map(({ version, content }) => (
-              <ReactMarkdown
-                key={version}
-                source={content}
-                renderers={markdownRenderers}
-              />
-            ))
-          ) : (
-            <ReactMarkdown source={changelog} renderers={markdownRenderers} />
-          )}
+          <ReactMarkdown source={mdSource} renderers={markdownRenderers} />
         </Main>
       </Layout>
     </Container>
@@ -244,13 +189,13 @@ const Layout = props => {
   return (
     <div
       css={{
-        display: "flex",
-        minHeight: "100vh",
-        flexDirection: "column",
+        display: 'flex',
+        minHeight: '100vh',
+        flexDirection: 'column',
 
-        "@media (min-width: 1024px)": {
-          flexDirection: "row"
-        }
+        [MD_UP]: {
+          flexDirection: 'row',
+        },
       }}
       {...props}
     />
@@ -260,8 +205,11 @@ const Aside = props => {
   return (
     <div
       css={{
-        display: "flex",
-        flex: 2
+        display: 'flex',
+
+        [MD_UP]: {
+          flex: 2,
+        },
       }}
       {...props}
     />
@@ -271,21 +219,22 @@ const Aside = props => {
 const Main = props => (
   <main
     css={{
-      backgroundColor: "white",
+      backgroundColor: 'white',
       borderRadius: radii.large,
       boxShadow: `0px 5px 40px rgba(0, 0, 0, 0.16)`,
       color: color.N600,
-      display: "flex",
-      flexDirection: "column",
+      display: 'flex',
+      flexDirection: 'column',
       flex: 3,
+      marginBottom: spacing.medium,
       marginTop: spacing.large,
       minWidth: 1, // fix weird bugs with children
       padding: spacing.medium,
 
-      "@media (min-width: 1024px)": {
+      [MD_UP]: {
         margin: spacing.large,
-        padding: spacing.xlarge
-      }
+        padding: spacing.xlarge,
+      },
     }}
     {...props}
   />
@@ -294,15 +243,15 @@ const Main = props => (
 const Container = ({ width = 640, ...props }) => (
   <div
     css={{
-      margin: "0 auto",
+      margin: '0 auto',
       maxWidth: width,
       paddingLeft: spacing.small,
       paddingRight: spacing.small,
 
-      "@media (min-width: 1024px)": {
+      [MD_UP]: {
         paddingLeft: spacing.medium,
-        paddingRight: spacing.medium
-      }
+        paddingRight: spacing.medium,
+      },
     }}
     {...props}
   />
@@ -316,14 +265,14 @@ const Header = props => (
       marginTop: spacing.large,
 
       h1: {
-        color: "white",
-        fontSize: "calc(32px + 1vw)",
+        color: 'white',
+        fontSize: 'calc(32px + 1vw)',
         margin: 0,
-        textShadow: `1px 1px 2px ${color.P500}`
+        textShadow: `1px 1px 2px ${color.P500}`,
       },
       p: {
-        lineHeight: 1.6
-      }
+        lineHeight: 1.6,
+      },
     }}
     {...props}
   />
@@ -332,43 +281,48 @@ const Header = props => (
 const Meta = props => (
   <div
     css={{
-      boxSizing: "border-box",
-      display: "none",
-      flexDirection: "column",
-      height: "100vh",
-      position: "sticky",
+      boxSizing: 'border-box',
+      display: 'none',
+      flexDirection: 'column',
+      height: '100vh',
+      position: 'sticky',
       top: 0,
 
       h2: {
-        color: "white",
+        color: 'white',
         paddingTop: spacing.medium,
-        margin: 0
+        margin: 0,
       },
       p: {
-        lineHeight: 1.6
+        lineHeight: 1.6,
       },
 
-      "@media (min-width: 1024px)": {
-        display: "flex"
-      }
+      [MD_UP]: {
+        display: 'flex',
+      },
     }}
     {...props}
   />
 );
-const Toc = props => (
+const Toc = ({ source }) => (
   <ul
     css={{
       borderTop: `2px solid ${color.P300}`,
       flex: 1,
-      listStyle: "none",
+      listStyle: 'none',
       marginLeft: 0,
-      overflowY: "auto",
+      overflowY: 'auto',
       paddingBottom: spacing.medium,
       paddingLeft: 0,
-      paddingTop: spacing.medium
+      paddingTop: spacing.medium,
     }}
-    {...props}
-  />
+  >
+    <ReactMarkdown
+      source={source}
+      allowedTypes={['heading', 'text', 'link']}
+      renderers={{ heading: TocItem }}
+    />
+  </ul>
 );
 /* eslint-disable jsx-a11y/anchor-has-content */
 const TocItem = ({ level, ...props }) => {
@@ -380,19 +334,19 @@ const TocItem = ({ level, ...props }) => {
     null,
     {
       fontSize: 14,
-      fontWeight: "bold",
-      marginTop: 8
+      fontWeight: 'bold',
+      marginTop: 8,
     },
     {
       fontSize: 14,
-      fontWeight: "bold",
-      marginTop: 8
+      fontWeight: 'bold',
+      marginTop: 8,
     },
     {
       fontSize: 12,
-      fontWeight: "normal",
-      paddingLeft: 8
-    }
+      fontWeight: 'normal',
+      paddingLeft: 8,
+    },
   ];
 
   const [id, text] = getTextNodes(props);
@@ -404,16 +358,16 @@ const TocItem = ({ level, ...props }) => {
         href={href}
         css={{
           color: color.P50,
-          display: "block",
+          display: 'block',
           paddingBottom: 4,
           paddingTop: 4,
-          textDecoration: "none",
+          textDecoration: 'none',
           ...variableStyles[level],
 
-          ":hover": {
-            color: "white",
-            textDecoration: "underline"
-          }
+          ':hover': {
+            color: 'white',
+            textDecoration: 'underline',
+          },
         }}
       >
         {text}
@@ -428,12 +382,12 @@ const BetaLabel = () => (
   <span
     css={{
       backgroundColor: color.T300,
-      color: "black",
+      color: 'black',
       borderRadius: 999,
-      fontSize: "0.85em",
+      fontSize: '0.85em',
       fontWeight: 500,
-      padding: "0.2em 0.8em",
-      textShadow: `1px 1px 0 ${color.T100}`
+      padding: '0.2em 0.8em',
+      textShadow: `1px 1px 0 ${color.T100}`,
     }}
   >
     Beta
@@ -441,10 +395,10 @@ const BetaLabel = () => (
 );
 
 const IssueLink = ({ type, ...props }) => {
-  const url = "https://github.com/Thinkmill/changelogs-xyz/issues/new";
+  const url = 'https://github.com/Thinkmill/changelogs-xyz/issues/new';
   const typeMap = {
-    filenotfound: "File not found",
-    packagenotfound: "Package not found"
+    filenotfound: 'File not found',
+    packagenotfound: 'Package not found',
   };
   const title = typeMap[type];
   const body = encodeURIComponent(`Location ${window.location.href}`);
@@ -461,57 +415,57 @@ const Input = props => (
       color: color.N800,
       outline: 0,
       borderRadius: 8,
-      boxSizing: "border-box",
-      fontSize: "inherit",
+      boxSizing: 'border-box',
+      fontSize: 'inherit',
       padding: 16,
-      width: "100%",
+      width: '100%',
 
-      ":focus": {
-        backgroundColor: color.N30
-      }
+      ':focus': {
+        backgroundColor: color.N30,
+      },
     }}
     {...props}
   />
 );
 
 const fileOptions = [
-  "CHANGELOG.md",
-  "ChangeLog.md",
-  "changelog.md",
-  "changelog.markdown",
-  "CHANGELOG",
-  "ChangeLog",
-  "changelog",
-  "CHANGES.md",
-  "changes.md",
-  "Changes.md",
-  "CHANGES",
-  "changes",
-  "Changes",
-  "HISTORY.md",
-  "history.md",
-  "HISTORY",
-  "history"
+  'CHANGELOG.md',
+  'ChangeLog.md',
+  'changelog.md',
+  'changelog.markdown',
+  'CHANGELOG',
+  'ChangeLog',
+  'changelog',
+  'CHANGES.md',
+  'changes.md',
+  'Changes.md',
+  'CHANGES',
+  'changes',
+  'Changes',
+  'HISTORY.md',
+  'history.md',
+  'HISTORY',
+  'history',
 ];
 
 const ErrorMessage = ({ type, text, packageName }) => {
-  if (type === "text") {
+  if (type === 'text') {
     return <p>{text}</p>;
   }
 
-  if (type === "filenotfound") {
+  if (type === 'filenotfound') {
     return (
       <Fragment>
         <p>
           We couldn't find a changelog file for this package. You can see what
-          files it has on{" "}
+          files it has on{' '}
           <a
             href={`https://unpkg.com/browse/${packageName}/`}
             target="_blank"
             rel="noopener noreferrer"
           >
             unpkg
-          </a>{" "}
+          </a>{' '}
           to see if we missed it.
         </p>
         <p>We support showing changelogs written to the following files:</p>
@@ -533,7 +487,7 @@ const ErrorMessage = ({ type, text, packageName }) => {
     );
   }
 
-  if (type === "packagenotfound") {
+  if (type === 'packagenotfound') {
     return (
       <p>
         We couldn't find the package &ldquo;{packageName}&rdquo; &mdash; perhaps
@@ -546,13 +500,13 @@ const ErrorMessage = ({ type, text, packageName }) => {
 
 const visiblyHiddenStyles = {
   border: 0,
-  clip: "rect(0, 0, 0, 0)",
+  clip: 'rect(0, 0, 0, 0)',
   height: 1,
-  overflow: "hidden",
+  overflow: 'hidden',
   padding: 0,
-  position: "absolute",
-  whiteSpace: "nowrap",
-  width: 1
+  position: 'absolute',
+  whiteSpace: 'nowrap',
+  width: 1,
 };
 
-ReactDOM.render(<App />, document.getElementById("root"));
+ReactDOM.render(<App />, document.getElementById('root'));
