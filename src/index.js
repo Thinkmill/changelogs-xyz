@@ -1,28 +1,37 @@
 /** @jsx jsx */
+
 import { jsx } from '@emotion/core';
-import {
-  divideChangelog,
-  filterChangelog,
-} from '@untitled-docs/changelog-utils';
-import { Fragment, useMemo } from 'react';
 import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 
+import './index.css';
+
 import * as markdownRenderers from './markdown-renderers';
+import { color, spacing } from './theme';
 import {
+  decodeHTMLEntities,
   getTextNodes,
+  useFilteredChangelog,
   useFilterSearch,
   useGetChangelog,
   useGetPackageAttributes,
 } from './utils';
-import { color, radii, spacing } from './theme';
-import './index.css';
+import {
+  Aside,
+  BetaLabel,
+  Container,
+  Header,
+  HiddenLabel,
+  Input,
+  Layout,
+  Main as MainElement,
+  Meta,
+} from './styled';
 
 import { Autocomplete } from './components/Autocomplete';
-import { Button } from './components/Button';
+import { EmptyState } from './components/EmptyState';
+import { ErrorMessage } from './components/ErrorMessage';
 import { Loading } from './components/Loading';
-
-const MD_UP = '@media (min-width: 1024px)';
 
 const onSearchSubmit = value => {
   if (!value.changelogFilename) {
@@ -31,26 +40,6 @@ const onSearchSubmit = value => {
 
   const url = `${window.location.origin}/${value.name}`;
   window.location.href = url;
-};
-
-const useFilteredChangelog = (changelog, range) => {
-  let { splitChangelog, canDivideChangelog } = useMemo(() => {
-    try {
-      let splitChangelog = divideChangelog(changelog);
-      return { canDivideChangelog: splitChangelog.length > 0, splitChangelog };
-    } catch {
-      return {
-        canDivideChangelog: false,
-      };
-    }
-  }, [changelog]);
-
-  let filteredChangelog = useMemo(
-    () => filterChangelog(splitChangelog, range),
-    [splitChangelog, range]
-  );
-
-  return { canDivideChangelog, splitChangelog, filteredChangelog };
 };
 
 function App() {
@@ -106,60 +95,20 @@ function App() {
             )}
           </Container>
         </Aside>
-        <Main>
-          {!packageName && (
-            <div
-              css={{
-                alignItems: 'center',
-                display: 'flex',
-                flexDirection: 'column',
-                flex: 1,
-                justifyContent: 'center',
-                padding: `${spacing.large}px 6vw`,
-                textAlign: 'center',
-              }}
-            >
-              <img
-                alt="Illustration: a magnifying glass over documents"
-                css={{
-                  marginBottom: 24,
-                  marginTop: -64,
-                  maxWidth: '20vmax',
-                }}
-                src="/magnify-documents.svg"
-              />
-              <h2 css={{ color: color.N100, fontWeight: 300 }}>
-                Search for a package and the changelog will appear here...
-              </h2>
-            </div>
-          )}
-
-          {packageName && noChangelogFilename && (
+        <Main isEmpty={!packageName} isLoading={combinedLoading}>
+          {noChangelogFilename && (
             <div>
               <div css={{ padding: '20px 100px' }}>
                 <img src="/empty-box.svg" alt="Illustration: an empty box" />
               </div>
               <h2 css={{ color: color.N800 }}>Something went wrong...</h2>
               <ErrorMessage packageName={packageName} type="filenotfound" />
-              {/* <p>If you believe this to be an error please raise an issue:</p>
-              <IssueLink type="filenotfound">Raise an Issue</IssueLink> */}
-            </div>
-          )}
-
-          {combinedLoading && (
-            <div css={{ paddingTop: 100, textAlign: 'center' }}>
-              <Loading />
-              <p css={{ color: color.N300, fontWeight: '500', fontSize: 24 }}>
-                Fetching the changelog...
-              </p>
             </div>
           )}
 
           {changelog ? (
             <div css={{ marginBottom: spacing.medium }}>
-              <label htmlFor="filter-input" css={visiblyHiddenStyles}>
-                Experimental semver filter
-              </label>
+              <HiddenLabel htmlFor="filter-input">Semver filter</HiddenLabel>
               <Input
                 id="filter-input"
                 type="search"
@@ -179,139 +128,32 @@ function App() {
   );
 }
 
-// Utils
+// Components
 // ------------------------------
 
-function decodeHTMLEntities(value) {
-  let textarea = document.createElement('textarea');
-  textarea.innerHTML = value;
-  return textarea.value;
-}
+const Main = ({ isEmpty, isLoading, children, ...props }) => {
+  let content = children;
 
-// Styled Components
-// ------------------------------
+  if (isEmpty) {
+    content = (
+      <EmptyState>
+        Search for a package and the changelog will appear here...
+      </EmptyState>
+    );
+  } else if (isLoading) {
+    content = (
+      <div css={{ paddingTop: 100, textAlign: 'center' }}>
+        <Loading />
+        <p css={{ color: color.N300, fontWeight: '500', fontSize: 24 }}>
+          Fetching the changelog...
+        </p>
+      </div>
+    );
+  }
 
-// Layout
-
-const Layout = props => {
-  return (
-    <div
-      css={{
-        display: 'flex',
-        minHeight: '100vh',
-        flexDirection: 'column',
-
-        [MD_UP]: {
-          flexDirection: 'row',
-        },
-      }}
-      {...props}
-    />
-  );
-};
-const Aside = props => {
-  return (
-    <div
-      css={{
-        display: 'flex',
-
-        [MD_UP]: {
-          flex: 2,
-        },
-      }}
-      {...props}
-    />
-  );
+  return <MainElement>{content}</MainElement>;
 };
 
-const Main = props => (
-  <main
-    css={{
-      backgroundColor: 'white',
-      borderRadius: radii.large,
-      boxShadow: `0px 5px 40px rgba(0, 0, 0, 0.16)`,
-      color: color.N600,
-      display: 'flex',
-      flexDirection: 'column',
-      flex: 3,
-      marginBottom: spacing.medium,
-      marginTop: spacing.large,
-      minWidth: 1, // fix weird bugs with children
-      padding: spacing.medium,
-
-      [MD_UP]: {
-        margin: spacing.large,
-        padding: spacing.xlarge,
-      },
-    }}
-    {...props}
-  />
-);
-
-const Container = ({ width = 640, ...props }) => (
-  <div
-    css={{
-      margin: '0 auto',
-      maxWidth: width,
-      paddingLeft: spacing.small,
-      paddingRight: spacing.small,
-
-      [MD_UP]: {
-        paddingLeft: spacing.medium,
-        paddingRight: spacing.medium,
-      },
-    }}
-    {...props}
-  />
-);
-
-// Header
-
-const Header = props => (
-  <header
-    css={{
-      marginTop: spacing.large,
-
-      h1: {
-        color: 'white',
-        fontSize: 'calc(24px + 1.24vw)',
-        margin: 0,
-        textShadow: `1px 1px 2px ${color.P500}`,
-      },
-      p: {
-        lineHeight: 1.6,
-      },
-    }}
-    {...props}
-  />
-);
-
-const Meta = props => (
-  <div
-    css={{
-      boxSizing: 'border-box',
-      display: 'none',
-      flexDirection: 'column',
-      height: '100vh',
-      position: 'sticky',
-      top: 0,
-
-      h2: {
-        color: 'white',
-        paddingTop: spacing.medium,
-        margin: 0,
-      },
-      p: {
-        lineHeight: 1.6,
-      },
-
-      [MD_UP]: {
-        display: 'flex',
-      },
-    }}
-    {...props}
-  />
-);
 const Toc = ({ source }) => (
   <ul
     css={{
@@ -332,7 +174,7 @@ const Toc = ({ source }) => (
     />
   </ul>
 );
-/* eslint-disable jsx-a11y/anchor-has-content */
+
 const TocItem = ({ level, ...props }) => {
   if (level > 3) {
     return null;
@@ -382,139 +224,6 @@ const TocItem = ({ level, ...props }) => {
       </a>
     </li>
   );
-};
-
-// Misc
-
-const BetaLabel = () => (
-  <span
-    css={{
-      backgroundColor: color.T300,
-      color: 'black',
-      borderRadius: 999,
-      fontSize: '0.85em',
-      fontWeight: 500,
-      padding: '0.2em 0.8em',
-      textShadow: `1px 1px 0 ${color.T100}`,
-    }}
-  >
-    Beta
-  </span>
-);
-
-const IssueLink = ({ type, ...props }) => {
-  const url = 'https://github.com/Thinkmill/changelogs-xyz/issues/new';
-  const typeMap = {
-    filenotfound: 'File not found',
-    packagenotfound: 'Package not found',
-  };
-  const title = typeMap[type];
-  const body = encodeURIComponent(`Location ${window.location.href}`);
-  const href = `${url}?title=${title}&body=${body}`;
-
-  return <Button href={href} target="_blank" {...props} />;
-};
-
-const Input = props => (
-  <input
-    css={{
-      backgroundColor: color.N20,
-      border: 0,
-      color: color.N800,
-      outline: 0,
-      borderRadius: 8,
-      boxSizing: 'border-box',
-      fontSize: 'inherit',
-      padding: 16,
-      width: '100%',
-
-      ':focus': {
-        backgroundColor: color.N30,
-      },
-    }}
-    {...props}
-  />
-);
-
-const fileOptions = [
-  'CHANGELOG.md',
-  'ChangeLog.md',
-  'changelog.md',
-  'changelog.markdown',
-  'CHANGELOG',
-  'ChangeLog',
-  'changelog',
-  'CHANGES.md',
-  'changes.md',
-  'Changes.md',
-  'CHANGES',
-  'changes',
-  'Changes',
-  'HISTORY.md',
-  'history.md',
-  'HISTORY',
-  'history',
-];
-
-const ErrorMessage = ({ type, text, packageName }) => {
-  if (type === 'text') {
-    return <p>{text}</p>;
-  }
-
-  if (type === 'filenotfound') {
-    return (
-      <Fragment>
-        <p>
-          We couldn't find a changelog file for this package. You can see what
-          files it has on{' '}
-          <a
-            href={`https://unpkg.com/browse/${packageName}/`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            unpkg
-          </a>{' '}
-          to see if we missed it.
-        </p>
-        <p>We support showing changelogs written to the following files:</p>
-        <ul>
-          {fileOptions.map(file => (
-            <li key={file}>{file}</li>
-          ))}
-        </ul>
-        <p>
-          If you think we should have found this changelog file, please raise an
-          issue:
-        </p>
-        <IssueLink type="filenotfound">Raise an Issue</IssueLink>
-        <p>
-          If you are this package's maintainer and want some advice on getting
-          started with adding changelogs, <a>we need a place to link to</a>
-        </p>
-      </Fragment>
-    );
-  }
-
-  if (type === 'packagenotfound') {
-    return (
-      <p>
-        We couldn't find the package &ldquo;{packageName}&rdquo; &mdash; perhaps
-        a wild typo has appeared?
-      </p>
-    );
-  }
-  return <p>This is a completely unknown error</p>;
-};
-
-const visiblyHiddenStyles = {
-  border: 0,
-  clip: 'rect(0, 0, 0, 0)',
-  height: 1,
-  overflow: 'hidden',
-  padding: 0,
-  position: 'absolute',
-  whiteSpace: 'nowrap',
-  width: 1,
 };
 
 ReactDOM.render(<App />, document.getElementById('root'));

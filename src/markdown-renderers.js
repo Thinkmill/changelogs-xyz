@@ -1,15 +1,39 @@
 /** @jsx jsx */
 
-import { jsx } from "@emotion/core";
+import { jsx } from '@emotion/core';
+import Highlight, { defaultProps } from 'prism-react-renderer';
+import githubTheme from 'prism-react-renderer/themes/github';
 
-import CodeBlock from "./Codeblock";
-import { color } from "./theme";
-import { getTextNodes } from "./utils";
+import { color } from './theme';
+import { getTextNodes } from './utils';
 
 // Code
 // ------------------------------
 
-export const code = CodeBlock;
+export const code = ({ value, language }) => {
+  return (
+    <Highlight
+      {...defaultProps}
+      code={
+        value || '/* this code block failed to render - please raise a bug */'
+      }
+      language={language}
+      theme={githubTheme}
+    >
+      {({ className, style, tokens, getLineProps, getTokenProps }) => (
+        <pre className={className} style={{ ...style, padding: '20px' }}>
+          {tokens.map((line, i) => (
+            <div key={i} {...getLineProps({ line, key: i })}>
+              {line.map((token, key) => (
+                <span key={key} {...getTokenProps({ token, key })} />
+              ))}
+            </div>
+          ))}
+        </pre>
+      )}
+    </Highlight>
+  );
+};
 
 export const inlineCode = ({ inline, value, ...props }) => (
   <code
@@ -17,13 +41,13 @@ export const inlineCode = ({ inline, value, ...props }) => (
       backgroundColor: color.T50,
       borderRadius: 2,
       color: color.T500,
-      fontSize: "0.85em",
+      fontSize: '0.85em',
       margin: 0,
-      padding: "0.2em 0.4em",
+      padding: '0.2em 0.4em',
 
-      "> a": {
-        color: "inherit"
-      }
+      '> a': {
+        color: 'inherit',
+      },
     }}
     {...props}
   />
@@ -36,25 +60,25 @@ const headingStyles = [
   null, // no match for `h0` element
   {
     color: color.N800,
-    ":first-of-type": { marginTop: 0 }
+    ':first-of-type': { marginTop: 0 },
   },
   {
     color: color.N800,
-    marginTop: "2em",
+    marginTop: '2em',
 
-    ":not(:first-of-type)": {
+    ':not(:first-of-type)': {
       boxShadow: `0 -2px 0 ${color.N40}`,
-      paddingTop: "2em"
-    }
+      paddingTop: '2em',
+    },
   },
   {
     color: color.N800,
-    fontSize: "1.2em"
+    fontSize: '1.2em',
   },
   {
     color: color.N800,
-    fontSize: "1em"
-  }
+    fontSize: '1em',
+  },
 ];
 export const heading = ({ level, ...props }) => {
   const Tag = `h${Math.max(level, 2)}`; // strip h1
@@ -70,17 +94,17 @@ export const heading = ({ level, ...props }) => {
 export const paragraph = props => (
   <p
     css={{
-      lineHeight: 1.6
+      lineHeight: 1.6,
     }}
     {...props}
   />
 );
 export const list = ({ depth, ordered, start, tight, ...props }) => {
-  const Tag = ordered ? "ol" : "ul";
+  const Tag = ordered ? 'ol' : 'ul';
   return (
     <Tag
       css={{
-        lineHeight: 1.6
+        lineHeight: 1.6,
       }}
       {...props}
     />
@@ -95,12 +119,12 @@ export const link = props => (
   <a
     css={{
       color: color.P400,
-      textDecoration: "none",
+      textDecoration: 'none',
 
-      ":hover": {
+      ':hover': {
         color: color.P300,
-        textDecoration: "underline"
-      }
+        textDecoration: 'underline',
+      },
     }}
     {...props}
   />

@@ -1,22 +1,22 @@
 /** @jsx jsx */
 
-import { jsx } from "@emotion/core";
-import { Component } from "react";
+import { jsx } from '@emotion/core';
+import { Component } from 'react';
 import {
   Configure,
   Highlight,
   InstantSearch,
   PoweredBy,
-  connectAutoComplete
-} from "react-instantsearch-dom";
-import AutoSuggest from "react-autosuggest";
+  connectAutoComplete,
+} from 'react-instantsearch-dom';
+import AutoSuggest from 'react-autosuggest';
 
-import { color, radii } from "../theme";
-import { algoliaSearchParameters, searchClient } from "../utils";
+import { SEARCH_CLIENT, SEARCH_PARAMS } from '../config';
+import { color, radii } from '../theme';
 
 class UnconnectedAutocomplete extends Component {
   state = {
-    value: this.props.currentRefinement || this.props.initialInputValue || ""
+    value: this.props.currentRefinement || this.props.initialInputValue || '',
   };
 
   onChange = (event, { newValue }) => {
@@ -44,7 +44,7 @@ class UnconnectedAutocomplete extends Component {
   }
 
   renderSuggestionsContainer({ containerProps, children }) {
-    const isOpen = containerProps.className.includes("open"); // yuck...
+    const isOpen = containerProps.className.includes('open'); // yuck...
     return (
       <Dialog isOpen={isOpen}>
         <div {...containerProps}>{children}</div>
@@ -67,10 +67,10 @@ class UnconnectedAutocomplete extends Component {
     const { value } = this.state;
 
     const inputProps = {
-      placeholder: "Search for a package...",
+      placeholder: 'Search for a package...',
       onChange: this.onChange,
-      name: "packageName",
-      value
+      name: 'packageName',
+      value,
     };
 
     return (
@@ -93,8 +93,8 @@ class UnconnectedAutocomplete extends Component {
 const ConnectedAutocomplete = connectAutoComplete(UnconnectedAutocomplete);
 
 export const Autocomplete = props => (
-  <InstantSearch indexName="npm-search" searchClient={searchClient}>
-    <Configure {...algoliaSearchParameters} />
+  <InstantSearch indexName="npm-search" searchClient={SEARCH_CLIENT}>
+    <Configure {...SEARCH_PARAMS} />
     <Form
       noValidate
       role="search"
@@ -115,15 +115,15 @@ export const Autocomplete = props => (
           background: 0,
           border: 0,
           left: 10,
-          pointerEvents: "none",
-          position: "absolute",
+          pointerEvents: 'none',
+          position: 'absolute',
 
-          "> svg": {
+          '> svg': {
             fill: color.P100,
             marginTop: 3, // fix perceived center
             height: 24,
-            width: 24
-          }
+            width: 24,
+          },
         }}
       >
         <svg
@@ -145,19 +145,19 @@ export const Autocomplete = props => (
 const Dialog = ({ isOpen, ...props }) => (
   <div
     css={{
-      background: "white",
+      background: 'white',
       borderRadius: radii.large,
       boxShadow: `0px 5px 40px rgba(0, 0, 0, 0.16)`,
-      boxSizing: "border-box",
-      display: isOpen ? "flex" : "none",
-      flexDirection: "column",
+      boxSizing: 'border-box',
+      display: isOpen ? 'flex' : 'none',
+      flexDirection: 'column',
       marginTop: 8,
       outline: 0,
-      position: "absolute",
-      textAlign: "start",
-      top: "100%",
-      width: "100%",
-      zIndex: 500
+      position: 'absolute',
+      textAlign: 'start',
+      top: '100%',
+      width: '100%',
+      zIndex: 500,
     }}
     {...props}
   />
@@ -165,26 +165,26 @@ const Dialog = ({ isOpen, ...props }) => (
 const Footer = props => (
   <div
     css={{
-      alignItems: "center",
+      alignItems: 'center',
       backgroundColor: color.N10,
       borderTop: `1px solid ${color.N30}`,
       borderBottomLeftRadius: radii.large,
       borderBottomRightRadius: radii.large,
       color: color.N100,
-      display: "flex",
-      fontSize: "0.85em",
-      justifyContent: "space-between",
+      display: 'flex',
+      fontSize: '0.85em',
+      justifyContent: 'space-between',
       paddingBottom: 8,
       paddingTop: 8,
       paddingLeft: 16,
       paddingRight: 16,
 
       // powered by elements
-      ".ais-PoweredBy-text": visiblyHiddenStyles,
-      ".ais-PoweredBy-logo": {
-        height: "auto",
-        width: 80
-      }
+      '.ais-PoweredBy-text': visiblyHiddenStyles,
+      '.ais-PoweredBy-logo': {
+        height: 'auto',
+        width: 80,
+      },
     }}
   >
     <span>Please be patient while we work out some kinks...</span>
@@ -196,83 +196,83 @@ const Form = props => {
   return (
     <form
       css={{
-        position: "relative",
-        alignItems: "center",
-        display: "flex",
+        position: 'relative',
+        alignItems: 'center',
+        display: 'flex',
 
         // container
-        ".react-autosuggest__container": {
-          flex: 1
+        '.react-autosuggest__container': {
+          flex: 1,
         },
 
         // search input and buttons
-        ".react-autosuggest__input": {
-          backgroundColor: "rgba(0, 0, 0, 0.16)",
+        '.react-autosuggest__input': {
+          backgroundColor: 'rgba(0, 0, 0, 0.16)',
           border: 0,
-          color: "white",
+          color: 'white',
           outline: 0,
           borderRadius: 999,
-          boxSizing: "border-box",
-          fontSize: "inherit",
+          boxSizing: 'border-box',
+          fontSize: 'inherit',
           padding: 16,
           paddingLeft: 50, // make room for the search icon
-          width: "100%",
+          width: '100%',
 
-          "::placeholder": {
-            color: color.P100
+          '::placeholder': {
+            color: color.P100,
           },
-          ":focus": {
-            backgroundColor: "rgba(0, 0, 0, 0.24)"
-          }
+          ':focus': {
+            backgroundColor: 'rgba(0, 0, 0, 0.24)',
+          },
         },
 
         // hit list and items
-        ".react-autosuggest__suggestions-container": {
+        '.react-autosuggest__suggestions-container': {
           flex: 1,
           // make scrollable (must be on this element for suggestions to scroll into view on key press)
           maxHeight: 400,
-          overflowY: "auto",
-          WebkitOverflowScrolling: "touch"
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
         },
-        ".react-autosuggest__suggestions-container--open": {
-          display: "block"
+        '.react-autosuggest__suggestions-container--open': {
+          display: 'block',
         },
-        ".react-autosuggest__suggestions-list": {
+        '.react-autosuggest__suggestions-list': {
           // remove list styles
-          listStyle: "none",
+          listStyle: 'none',
           margin: 0,
-          padding: 0
+          padding: 0,
         },
-        ".react-autosuggest__suggestion": {
+        '.react-autosuggest__suggestion': {
           color: color.N600,
-          cursor: "pointer",
-          padding: 16
+          cursor: 'pointer',
+          padding: 16,
         },
-        ".react-autosuggest__suggestion--first": {
+        '.react-autosuggest__suggestion--first': {
           borderTopLeftRadius: radii.large,
-          borderTopRightRadius: radii.large
+          borderTopRightRadius: radii.large,
         },
-        ".react-autosuggest__suggestion--last": {
+        '.react-autosuggest__suggestion--last': {
           borderBottomLeftRadius: radii.large,
-          borderBottomRightRadius: radii.large
+          borderBottomRightRadius: radii.large,
         },
-        ".react-autosuggest__suggestion--disabled": {
+        '.react-autosuggest__suggestion--disabled': {
           color: color.N200,
-          textDecoration: "line-through"
+          textDecoration: 'line-through',
         },
-        ".react-autosuggest__suggestion--highlighted": {
-          backgroundColor: color.P50
+        '.react-autosuggest__suggestion--highlighted': {
+          backgroundColor: color.P50,
         },
-        ".ais-Hits-item:not(:first-of-type)": {
-          borderTop: `1px solid ${color.N20}`
+        '.ais-Hits-item:not(:first-of-type)': {
+          borderTop: `1px solid ${color.N20}`,
         },
 
-        ".ais-Highlight-highlighted": {
-          backgroundColor: "unset",
+        '.ais-Highlight-highlighted': {
+          backgroundColor: 'unset',
           color: color.N900,
-          fontStyle: "normal",
-          fontWeight: 500
-        }
+          fontStyle: 'normal',
+          fontWeight: 500,
+        },
       }}
       {...props}
     />
@@ -281,11 +281,11 @@ const Form = props => {
 
 const visiblyHiddenStyles = {
   border: 0,
-  clip: "rect(0, 0, 0, 0)",
+  clip: 'rect(0, 0, 0, 0)',
   height: 1,
-  overflow: "hidden",
+  overflow: 'hidden',
   padding: 0,
-  position: "absolute",
-  whiteSpace: "nowrap",
-  width: 1
+  position: 'absolute',
+  whiteSpace: 'nowrap',
+  width: 1,
 };

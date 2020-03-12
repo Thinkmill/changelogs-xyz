@@ -1,9 +1,9 @@
 /** @jsx jsx */
 
-import PropTypes from "prop-types";
-import { jsx } from "@emotion/core";
+import PropTypes from 'prop-types';
+import { jsx } from '@emotion/core';
 
-import { color } from "../theme";
+import { color } from '../theme';
 
 export const Switch = ({ checked, onChange, ...props }) => {
   const handleClick = () => {
@@ -17,7 +17,7 @@ export const Switch = ({ checked, onChange, ...props }) => {
       role="switch"
       {...props}
     >
-      {checked ? "On" : "Off"}
+      {checked ? 'On' : 'Off'}
     </Button>
   );
 };
@@ -28,7 +28,7 @@ Switch.propTypes = {
   /** Each switch must have an accompanying label. */
   id: PropTypes.string.isRequired,
   /** Handle user input. */
-  onChange: PropTypes.func.isRequired
+  onChange: PropTypes.func.isRequired,
 };
 
 // Styled Components
@@ -42,7 +42,7 @@ const HANDLE_SIZE = 24;
 const animationEasing = {
   spring: `cubic-bezier(0.2, 0, 0, 1.6)`,
   easeIn: `cubic-bezier(0.2, 0, 0, 1)`,
-  easeOut: `cubic-bezier(0.165, 0.840, 0.440, 1.000)` // quart
+  easeOut: `cubic-bezier(0.165, 0.840, 0.440, 1.000)`, // quart
 };
 
 const Button = props => {
@@ -52,38 +52,38 @@ const Button = props => {
         backgroundColor: color.N50,
         borderRadius: HANDLE_SIZE,
         border: 0,
-        boxSizing: "border-box",
+        boxSizing: 'border-box',
         height: HANDLE_SIZE + GUTTER_OFFSET,
         outline: 0,
-        overflow: "hidden",
+        overflow: 'hidden',
         padding: GUTTER,
-        position: "relative",
-        textIndent: "120%",
-        whiteSpace: "nowrap",
+        position: 'relative',
+        textIndent: '120%',
+        whiteSpace: 'nowrap',
         width: HANDLE_SIZE * 2 + GUTTER_OFFSET,
 
-        ":disabled": {
-          opacity: 0.5
+        ':disabled': {
+          opacity: 0.5,
         },
         '&[aria-checked="true"]': {
           backgroundColor: color.T300,
 
-          "::before": {
-            transform: "translateX(100%)"
-          }
+          '::before': {
+            transform: 'translateX(100%)',
+          },
         },
 
-        "::before": {
-          backgroundColor: "white",
-          borderRadius: "50%",
-          boxShadow: "0 0 1px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2)",
+        '::before': {
+          backgroundColor: 'white',
+          borderRadius: '50%',
+          boxShadow: '0 0 1px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.2)',
           content: '" "',
-          display: "block",
+          display: 'block',
           height: HANDLE_SIZE,
-          position: "relative",
+          position: 'relative',
           transition: `transform 240ms ${animationEasing.easeOut}`,
-          width: HANDLE_SIZE
-        }
+          width: HANDLE_SIZE,
+        },
       }}
       {...props}
     />

@@ -1,8 +1,8 @@
 /** @jsx jsx */
 
-import { jsx, keyframes } from "@emotion/core";
+import { jsx, keyframes } from '@emotion/core';
 
-import { color } from "../theme";
+import { color } from '../theme';
 
 // NOTE: Using a negative value seems to resolve a safari bug where animation
 // delays become out-of-sync whilst rendering an infinite animation.
@@ -26,12 +26,12 @@ const fadeAnim = keyframes`0%, 80%, 100% { opacity: 0; } 40% { opacity: 1; }`;
 const Container = props => (
   <div
     css={{
-      alignSelf: "center",
-      display: "inline-flex",
+      alignSelf: 'center',
+      display: 'inline-flex',
       fontSize: 16,
       lineHeight: 1,
-      textAlign: "center",
-      verticalAlign: "middle"
+      textAlign: 'center',
+      verticalAlign: 'middle',
     }}
     {...props}
   />
@@ -40,14 +40,14 @@ const Dot = ({ delay, isOffset, variant, ...props }) => (
   <div
     css={{
       animation: `${fadeAnim} 1s infinite ${delay}ms`,
-      animationTimingFunction: "ease-in-out",
+      animationTimingFunction: 'ease-in-out',
       backgroundColor: color.N100,
-      borderRadius: "1em",
-      display: "inline-block",
-      height: "1em",
-      marginLeft: isOffset ? "1em" : null,
-      verticalAlign: "top",
-      width: "1em"
+      borderRadius: '1em',
+      display: 'inline-block',
+      height: '1em',
+      marginLeft: isOffset ? '1em' : null,
+      verticalAlign: 'top',
+      width: '1em',
     }}
     {...props}
   />
