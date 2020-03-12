@@ -100,11 +100,7 @@ function App() {
             {changelog && (
               <Meta>
                 <h2 css={{ color: 'white' }}>{packageAtributes.name}</h2>
-                <p
-                  dangerouslySetInnerHTML={{
-                    __html: packageAtributes.description, // decode html chars like "&amp;" -- nobody's putting malicious scripts in their package description, right!?
-                  }}
-                />
+                <p>{decodeHTMLEntities(packageAtributes.description)}</p>
                 <Toc source={mdSource} />
               </Meta>
             )}
@@ -182,6 +178,15 @@ function App() {
       </Layout>
     </Container>
   );
+}
+
+// Utils
+// ------------------------------
+
+function decodeHTMLEntities(value) {
+  let textarea = document.createElement('textarea');
+  textarea.innerHTML = value;
+  return textarea.value;
 }
 
 // Styled Components
