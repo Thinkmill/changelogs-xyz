@@ -1,6 +1,7 @@
 /** @jsx jsx */
 
 import {
+  Children,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -9,6 +10,27 @@ import {
 } from "react";
 import algoliasearch from "algoliasearch/lite";
 import queryString from "query-string";
+
+// Misc
+// ------------------------------
+
+export function getTextNodes(props) {
+  let id = "";
+  let text = "";
+
+  function destructureProps(props) {
+    if (props.value) {
+      id += props.nodeKey;
+      text += props.value;
+    } else {
+      Children.forEach(props.children, c => destructureProps(c.props));
+    }
+  }
+
+  destructureProps(props);
+
+  return [id, text];
+}
 
 // Package Resolution
 // ------------------------------
@@ -21,7 +43,7 @@ export const searchClient = algoliasearch(
 const index = searchClient.initIndex("npm-search");
 
 export const algoliaSearchParameters = {
-  attributesToRetrieve: ["name", "version", "changelogFilename"],
+  attributesToRetrieve: ["name", "description", "version", "changelogFilename"],
   analyticsTags: ["http://changelogs.xyz"]
 };
 

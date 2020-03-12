@@ -1,28 +1,29 @@
 /** @jsx jsx */
 
 import { jsx } from "@emotion/core";
-import { color } from "../theme";
-
-const gridSize = 8;
+import { color, spacing } from "../theme";
 
 export const Button = props => {
   const Tag = props.href ? "a" : "button";
   return (
     <Tag
       css={{
-        backgroundColor: color.B400,
+        backgroundColor: color.P400,
         border: 0,
-        borderRadius: 4,
+        borderRadius: 999,
         cursor: "pointer",
         color: "white",
         display: "inline-block",
         fontSize: "inherit",
         outline: 0,
-        padding: `${gridSize * 1.5}px ${gridSize * 2}px`,
+        paddingBottom: spacing.small,
+        paddingTop: spacing.small,
+        paddingLeft: spacing.medium,
+        paddingRight: spacing.medium,
         textDecoration: "none",
 
         ":hover, :focus": {
-          backgroundColor: color.B300
+          backgroundColor: color.P300
         }
       }}
       {...props}

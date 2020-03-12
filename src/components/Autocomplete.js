@@ -11,7 +11,7 @@ import {
 } from "react-instantsearch-dom";
 import AutoSuggest from "react-autosuggest";
 
-import { color } from "../theme";
+import { color, radii } from "../theme";
 import { algoliaSearchParameters, searchClient } from "../utils";
 
 class UnconnectedAutocomplete extends Component {
@@ -29,6 +29,8 @@ class UnconnectedAutocomplete extends Component {
     this.props.refine();
   };
   onSuggestionSelected = (event, { suggestion }) => {
+    console.log(suggestion);
+
     this.props.onSubmit(suggestion);
   };
 
@@ -51,7 +53,6 @@ class UnconnectedAutocomplete extends Component {
     );
   }
   renderSuggestion(hit) {
-    console.log(hit.changelogFilename);
     return hit.changelogFilename ? (
       <Highlight attribute="name" hit={hit} tagName="mark" />
     ) : (
@@ -75,6 +76,7 @@ class UnconnectedAutocomplete extends Component {
     return (
       <AutoSuggest
         getSuggestionValue={this.getSuggestionValue}
+        highlightFirstSuggestion
         inputProps={inputProps}
         onSuggestionsClearRequested={this.onSuggestionsClearRequested}
         onSuggestionSelected={this.onSuggestionSelected}
@@ -94,7 +96,7 @@ export const Autocomplete = props => (
   <InstantSearch indexName="npm-search" searchClient={searchClient}>
     <Configure {...algoliaSearchParameters} />
     <Form
-      novalidate
+      noValidate
       role="search"
       action="/"
       method="get"
@@ -112,15 +114,15 @@ export const Autocomplete = props => (
         css={{
           background: 0,
           border: 0,
-          left: 16,
+          left: 10,
           pointerEvents: "none",
           position: "absolute",
 
           "> svg": {
-            fill: color.N100,
+            fill: color.P100,
             marginTop: 3, // fix perceived center
-            height: 16,
-            width: 16
+            height: 24,
+            width: 24
           }
         }}
       >
@@ -144,7 +146,7 @@ const Dialog = ({ isOpen, ...props }) => (
   <div
     css={{
       background: "white",
-      borderRadius: 8,
+      borderRadius: radii.large,
       boxShadow: `0px 5px 40px rgba(0, 0, 0, 0.16)`,
       boxSizing: "border-box",
       display: isOpen ? "flex" : "none",
@@ -152,6 +154,7 @@ const Dialog = ({ isOpen, ...props }) => (
       marginTop: 8,
       outline: 0,
       position: "absolute",
+      textAlign: "start",
       top: "100%",
       width: "100%",
       zIndex: 500
@@ -165,8 +168,8 @@ const Footer = props => (
       alignItems: "center",
       backgroundColor: color.N10,
       borderTop: `1px solid ${color.N30}`,
-      borderBottomLeftRadius: 8,
-      borderBottomRightRadius: 8,
+      borderBottomLeftRadius: radii.large,
+      borderBottomRightRadius: radii.large,
       color: color.N100,
       display: "flex",
       fontSize: "0.85em",
@@ -204,19 +207,22 @@ const Form = props => {
 
         // search input and buttons
         ".react-autosuggest__input": {
-          backgroundColor: color.N20,
+          backgroundColor: "rgba(0, 0, 0, 0.16)",
           border: 0,
-          color: color.N800,
+          color: "white",
           outline: 0,
-          borderRadius: 8,
+          borderRadius: 999,
           boxSizing: "border-box",
           fontSize: "inherit",
           padding: 16,
-          paddingLeft: 48, // make room for the search icon
+          paddingLeft: 50, // make room for the search icon
           width: "100%",
 
+          "::placeholder": {
+            color: color.P100
+          },
           ":focus": {
-            backgroundColor: color.N30
+            backgroundColor: "rgba(0, 0, 0, 0.24)"
           }
         },
 
@@ -238,23 +244,24 @@ const Form = props => {
           padding: 0
         },
         ".react-autosuggest__suggestion": {
+          color: color.N600,
           cursor: "pointer",
           padding: 16
         },
         ".react-autosuggest__suggestion--first": {
-          borderTopLeftRadius: 8,
-          borderTopRightRadius: 8
+          borderTopLeftRadius: radii.large,
+          borderTopRightRadius: radii.large
         },
         ".react-autosuggest__suggestion--last": {
-          borderBottomLeftRadius: 8,
-          borderBottomRightRadius: 8
+          borderBottomLeftRadius: radii.large,
+          borderBottomRightRadius: radii.large
         },
         ".react-autosuggest__suggestion--disabled": {
           color: color.N200,
           textDecoration: "line-through"
         },
         ".react-autosuggest__suggestion--highlighted": {
-          backgroundColor: color.B50
+          backgroundColor: color.P50
         },
         ".ais-Hits-item:not(:first-of-type)": {
           borderTop: `1px solid ${color.N20}`

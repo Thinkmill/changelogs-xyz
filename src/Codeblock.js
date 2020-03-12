@@ -1,6 +1,6 @@
 import React from "react";
 import Highlight, { defaultProps } from "prism-react-renderer";
-import nightOwl from "prism-react-renderer/themes/nightOwl";
+import githubTheme from "prism-react-renderer/themes/github";
 
 export default ({ value, language }) => {
   return (
@@ -10,7 +10,7 @@ export default ({ value, language }) => {
         value || "/* this code block failed to render - please raise a bug */"
       }
       language={language}
-      theme={nightOwl}
+      theme={githubTheme}
     >
       {({ className, style, tokens, getLineProps, getTokenProps }) => (
         <pre className={className} style={{ ...style, padding: "20px" }}>

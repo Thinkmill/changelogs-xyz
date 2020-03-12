@@ -4,6 +4,7 @@ import { jsx } from "@emotion/core";
 
 import CodeBlock from "./Codeblock";
 import { color } from "./theme";
+import { getTextNodes } from "./utils";
 
 // Code
 // ------------------------------
@@ -13,9 +14,9 @@ export const code = CodeBlock;
 export const inlineCode = ({ inline, value, ...props }) => (
   <code
     css={{
-      backgroundColor: color.P50,
+      backgroundColor: color.T50,
       borderRadius: 2,
-      color: color.P500,
+      color: color.T500,
       fontSize: "0.85em",
       margin: 0,
       padding: "0.2em 0.4em",
@@ -39,18 +40,28 @@ const headingStyles = [
   },
   {
     color: color.N800,
-    marginTop: "2em"
+    marginTop: "2em",
+
+    ":not(:first-of-type)": {
+      boxShadow: `0 -2px 0 ${color.N40}`,
+      paddingTop: "2em"
+    }
   },
   {
-    color: color.N200,
-    fontSize: "0.9em",
-    marginTop: "2em"
+    color: color.N800,
+    fontSize: "1.2em"
+  },
+  {
+    color: color.N800,
+    fontSize: "1em"
   }
 ];
 export const heading = ({ level, ...props }) => {
-  const Tag = `h${level}`;
+  const Tag = `h${Math.max(level, 2)}`; // strip h1
   const levelStyles = headingStyles[level];
-  return <Tag css={levelStyles} {...props} />;
+  const [id] = getTextNodes(props);
+
+  return <Tag css={levelStyles} id={id} {...props} />;
 };
 
 // Block Elements
@@ -83,11 +94,11 @@ export const list = ({ depth, ordered, start, tight, ...props }) => {
 export const link = props => (
   <a
     css={{
-      color: color.B400,
+      color: color.P400,
       textDecoration: "none",
 
       ":hover": {
-        color: color.B300,
+        color: color.P300,
         textDecoration: "underline"
       }
     }}
