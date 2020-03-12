@@ -124,8 +124,7 @@ function App() {
                 css={{
                   marginBottom: 24,
                   marginTop: -64,
-
-                  [MD_UP]: { maxWidth: 320 },
+                  maxWidth: '20vmax',
                 }}
                 src="/magnify-documents.svg"
               />
@@ -275,7 +274,7 @@ const Header = props => (
 
       h1: {
         color: 'white',
-        fontSize: 'calc(32px + 1vw)',
+        fontSize: 'calc(24px + 1.24vw)',
         margin: 0,
         textShadow: `1px 1px 2px ${color.P500}`,
       },
