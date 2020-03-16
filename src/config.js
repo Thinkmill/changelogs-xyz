@@ -6,6 +6,17 @@ export const SEARCH_CLIENT = algoliasearch(
 );
 
 export const SEARCH_PARAMS = {
-  attributesToRetrieve: ['name', 'description', 'version', 'changelogFilename'],
+  attributesToRetrieve: [
+    // These are properties we are using
+    'name',
+    'description',
+    'version',
+    'changelogFilename',
+    'homepage',
+    // These are properties we should almost certainly use somewhere, but we aren't yet
+    // Repository we probably want to link to it using the URL
+    // 'repository',
+    // 'deprecated',
+  ],
   analyticsTags: ['http://changelogs.xyz'],
 };

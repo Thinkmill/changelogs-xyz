@@ -75,15 +75,29 @@ export const ErrorMessage = ({ type, text, packageName }) => {
   return <p>This is a completely unknown error</p>;
 };
 
-const IssueLink = ({ type, ...props }) => {
+export const IssueLink = ({ type, ...props }) => {
   const url = 'https://github.com/Thinkmill/changelogs-xyz/issues/new';
   const typeMap = {
     filenotfound: 'File not found',
     packagenotfound: 'Package not found',
+    main: 'I had a problem using changelogs.xyz:',
   };
   const title = typeMap[type];
   const body = encodeURIComponent(`Location ${window.location.href}`);
   const href = `${url}?title=${title}&body=${body}`;
 
-  return <Button href={href} target="_blank" {...props} />;
+  return type === 'main' ? (
+    // We know this is in props, so chill out eslint
+    // eslint-disable-next-line jsx-a11y/anchor-has-content
+    <a
+      css={{
+        color: 'white',
+      }}
+      href={href}
+      target="_blank"
+      {...props}
+    />
+  ) : (
+    <Button href={href} target="_blank" {...props} />
+  );
 };

@@ -18,7 +18,6 @@ import {
 } from './utils';
 import {
   Aside,
-  BetaLabel,
   Container,
   Header,
   HiddenLabel,
@@ -30,7 +29,7 @@ import {
 
 import { Autocomplete } from './components/Autocomplete';
 import { EmptyState } from './components/EmptyState';
-import { ErrorMessage } from './components/ErrorMessage';
+import { ErrorMessage, IssueLink } from './components/ErrorMessage';
 import { Loading } from './components/Loading';
 
 const onSearchSubmit = value => {
@@ -64,6 +63,7 @@ function App() {
   } = useFilteredChangelog(changelog, searchValue);
 
   const combinedLoading = fetchingPackageAttributes || isLoading;
+  // We have done it this way to make the links in the sidebar work - not sure how we can make this more performant though
   const mdSource =
     searchValue && canDivideChangelog
       ? filteredChangelog.map(({ content }) => content).join('')
@@ -75,11 +75,14 @@ function App() {
         <Aside>
           <Container>
             <Header>
-              <BetaLabel />
               <h1>changelogs.xyz</h1>
               <p>
                 Search for any package on npm by name and we'll show you its
                 changelog!
+              </p>
+              <p>
+                (If you run into any errors,{' '}
+                <IssueLink type="main">raise an Issue</IssueLink>)
               </p>
               <Autocomplete
                 onSubmit={onSearchSubmit}
@@ -88,7 +91,17 @@ function App() {
             </Header>
             {changelog && (
               <Meta>
-                <h2 css={{ color: 'white' }}>{packageAtributes.name}</h2>
+                <h2>
+                  <a
+                    href={
+                      packageAtributes.homepage ||
+                      `https://www.npmjs.com/package/${packageAtributes.name}`
+                    }
+                    css={{ color: 'white' }}
+                  >
+                    {packageAtributes.name}
+                  </a>
+                </h2>
                 <p>{decodeHTMLEntities(packageAtributes.description)}</p>
                 <Toc source={mdSource} />
               </Meta>
