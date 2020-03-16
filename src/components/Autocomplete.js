@@ -29,8 +29,6 @@ class UnconnectedAutocomplete extends Component {
     this.props.refine();
   };
   onSuggestionSelected = (event, { suggestion }) => {
-    console.log(suggestion);
-
     this.props.onSubmit(suggestion);
   };
 
