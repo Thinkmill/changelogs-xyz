@@ -41,7 +41,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 991px) {
   body {
     font-size: 0.85rem;
   }

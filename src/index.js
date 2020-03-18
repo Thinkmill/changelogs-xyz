@@ -23,6 +23,7 @@ import {
   HiddenLabel,
   Input,
   Layout,
+  Lead,
   Main as MainElement,
   Meta,
   Sponsor,
@@ -70,48 +71,83 @@ function App() {
       ? filteredChangelog.map(({ content }) => content).join('')
       : changelog;
 
+  if (!packageName) {
+    return (
+      <Container width={440}>
+        <main
+          css={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '50vh',
+            justifyContent: 'flex-end',
+            position: 'relative',
+            textAlign: 'center',
+          }}
+        >
+          <Header>
+            <Lead direction="column" />
+            <Autocomplete
+              onSubmit={onSearchSubmit}
+              initialInputValue={packageName}
+            />
+          </Header>
+          <Sponsor
+            direction="column"
+            css={{
+              bottom: 0,
+              left: '50%',
+              position: 'absolute',
+              transform: `translate(-50%, calc(100% + ${spacing.medium}px))`,
+            }}
+          />
+        </main>
+      </Container>
+    );
+  }
+
   return (
-    <Container width={1340}>
+    <Container width={1140}>
       <Layout>
         <Aside>
-          <Container>
-            <Header>
-              <h1>changelogs.xyz</h1>
-              <p>
-                Search for any package on npm by name and we'll show you its
-                changelog!
-              </p>
-              <Autocomplete
-                onSubmit={onSearchSubmit}
-                initialInputValue={packageName}
-              />
-            </Header>
-            {changelog ? (
-              <Meta>
-                <h2>
-                  <a
-                    href={
-                      packageAtributes.homepage ||
-                      `https://www.npmjs.com/package/${packageAtributes.name}`
-                    }
-                    css={{ color: 'white' }}
-                  >
-                    {packageAtributes.name}
-                  </a>
-                </h2>
-                <p>{decodeHTMLEntities(packageAtributes.description)}</p>
-                <Toc source={mdSource} />
-                <Sponsor
-                  css={{
-                    marginBottom: spacing.medium,
-                    marginTop: spacing.medium,
-                  }}
-                />
-              </Meta>
-            ) : (
-              <Sponsor css={{ marginTop: spacing.medium }} />
-            )}
-          </Container>
+          <Header>
+            <Lead direction="row" />
+            <Autocomplete
+              onSubmit={onSearchSubmit}
+              initialInputValue={packageName}
+            />
+          </Header>
+          <Meta>
+            <h2
+              css={{
+                color: 'white',
+                fontSize: '1.2rem',
+                fontWeight: 500,
+              }}
+            >
+              <a
+                href={
+                  packageAtributes.homepage ||
+                  `https://www.npmjs.com/package/${packageAtributes.name}`
+                }
+                css={{
+                  color: 'inherit',
+                  textDecoration: 'none',
+                  ':hover': { textDecoration: 'underline' },
+                }}
+              >
+                {packageAtributes.name}
+              </a>
+            </h2>
+            <p>{decodeHTMLEntities(packageAtributes.description)}</p>
+            <Toc source={mdSource} />
+            <Sponsor
+              direction="row"
+              css={{
+                marginBottom: spacing.medium,
+                marginTop: spacing.medium,
+              }}
+            />
+          </Meta>
         </Aside>
         <Main isEmpty={!packageName} isLoading={combinedLoading}>
           {noChangelogFilename && (

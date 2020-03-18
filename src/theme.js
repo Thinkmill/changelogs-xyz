@@ -88,6 +88,7 @@ export const spacing = {
   medium: BASE_UNIT * 3,
   large: BASE_UNIT * 4,
   xlarge: BASE_UNIT * 6,
+  xxlarge: BASE_UNIT * 8,
 };
 
 // Radii
