@@ -58,7 +58,7 @@ export const ErrorMessage = ({ type, text, packageName }) => {
         <IssueLink type="filenotfound">Raise an Issue</IssueLink>
         <p>
           If you are this package's maintainer and want some advice on getting
-          started with adding changelogs, <a>we need a place to link to</a>
+          started with adding changelogs, we need a place to link to.
         </p>
       </Fragment>
     );
@@ -94,6 +94,7 @@ export const IssueLink = ({ type, ...props }) => {
         color: 'white',
       }}
       href={href}
+      rel="noopener noreferrer"
       target="_blank"
       {...props}
     />

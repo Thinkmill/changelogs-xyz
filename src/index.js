@@ -25,11 +25,12 @@ import {
   Layout,
   Main as MainElement,
   Meta,
+  Sponsor,
 } from './styled';
 
 import { Autocomplete } from './components/Autocomplete';
 import { EmptyState } from './components/EmptyState';
-import { ErrorMessage, IssueLink } from './components/ErrorMessage';
+import { ErrorMessage } from './components/ErrorMessage';
 import { Loading } from './components/Loading';
 
 const onSearchSubmit = value => {
@@ -80,16 +81,12 @@ function App() {
                 Search for any package on npm by name and we'll show you its
                 changelog!
               </p>
-              <p>
-                (If you run into any errors,{' '}
-                <IssueLink type="main">raise an Issue</IssueLink>)
-              </p>
               <Autocomplete
                 onSubmit={onSearchSubmit}
                 initialInputValue={packageName}
               />
             </Header>
-            {changelog && (
+            {changelog ? (
               <Meta>
                 <h2>
                   <a
@@ -104,7 +101,15 @@ function App() {
                 </h2>
                 <p>{decodeHTMLEntities(packageAtributes.description)}</p>
                 <Toc source={mdSource} />
+                <Sponsor
+                  css={{
+                    marginBottom: spacing.medium,
+                    marginTop: spacing.medium,
+                  }}
+                />
               </Meta>
+            ) : (
+              <Sponsor css={{ marginTop: spacing.medium }} />
             )}
           </Container>
         </Aside>
@@ -170,10 +175,11 @@ const Main = ({ isEmpty, isLoading, children, ...props }) => {
 const Toc = ({ source }) => (
   <ul
     css={{
+      borderBottom: `2px solid ${color.P300}`,
       borderTop: `2px solid ${color.P300}`,
       flex: 1,
       listStyle: 'none',
-      marginLeft: 0,
+      margin: 0,
       overflowY: 'auto',
       paddingBottom: spacing.medium,
       paddingLeft: 0,
