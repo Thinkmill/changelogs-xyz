@@ -151,6 +151,7 @@ const Dialog = ({ isOpen, ...props }) => (
       flexDirection: 'column',
       marginTop: 8,
       outline: 0,
+      overflow: 'hidden',
       position: 'absolute',
       textAlign: 'start',
       top: '100%',
@@ -171,21 +172,26 @@ const Footer = props => (
       color: color.N100,
       display: 'flex',
       fontSize: '0.85em',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-end',
       paddingBottom: 8,
       paddingTop: 8,
       paddingLeft: 16,
       paddingRight: 16,
 
       // powered by elements
-      '.ais-PoweredBy-text': visiblyHiddenStyles,
+      '.ais-PoweredBy': {
+        alignItems: 'center',
+        display: 'flex',
+      },
+      '.ais-PoweredBy-text': {
+        marginRight: '0.5em',
+      },
       '.ais-PoweredBy-logo': {
         height: 'auto',
         width: 80,
       },
     }}
   >
-    <span>Please be patient while we work out some kinks...</span>
     <PoweredBy />
   </div>
 );
@@ -228,7 +234,7 @@ const Form = props => {
         '.react-autosuggest__suggestions-container': {
           flex: 1,
           // make scrollable (must be on this element for suggestions to scroll into view on key press)
-          maxHeight: 400,
+          maxHeight: 'calc(50vh - 64px)',
           overflowY: 'auto',
           WebkitOverflowScrolling: 'touch',
         },
