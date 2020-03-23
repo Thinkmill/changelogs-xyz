@@ -38,7 +38,6 @@ function getNodeProps(node, renderer, parent, index, renderers) {
     case 'list':
       props.start = node.start;
       props.ordered = node.ordered;
-      props.tight = !node.loose;
       props.depth = node.depth;
       break;
     case 'listItem':
