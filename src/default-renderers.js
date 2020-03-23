@@ -20,12 +20,8 @@ export default {
 
   root: Root,
   text: TextRenderer,
-  list: List,
   listItem: ListItem,
   definition: NullRenderer,
-  heading: Heading,
-  inlineCode: InlineCode,
-  code: CodeBlock,
 };
 
 function TextRenderer(props) {
@@ -52,19 +48,6 @@ function TableCell(props) {
   );
 }
 
-function Heading(props) {
-  return createElement(`h${props.level}`, props, props.children);
-}
-
-function List(props) {
-  const attrs = props;
-  if (props.start !== null && props.start !== 1 && props.start !== undefined) {
-    attrs.start = props.start.toString();
-  }
-
-  return createElement(props.ordered ? 'ol' : 'ul', attrs, props.children);
-}
-
 function ListItem(props) {
   let checkbox = null;
   if (props.checked !== null && props.checked !== undefined) {
@@ -77,20 +60,6 @@ function ListItem(props) {
   }
 
   return createElement('li', props, checkbox, props.children);
-}
-
-function CodeBlock(props) {
-  const className = props.language && `language-${props.language}`;
-  const code = createElement(
-    'code',
-    className ? { className: className } : null,
-    props.value
-  );
-  return createElement('pre', props, code);
-}
-
-function InlineCode(props) {
-  return createElement('code', props, props.children);
 }
 
 function NullRenderer() {
