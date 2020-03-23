@@ -12,6 +12,7 @@ import { filterChangelog } from '@untitled-docs/changelog-utils';
 import './index.css';
 
 import * as markdownRenderers from './markdown-renderers';
+import defaultRenderers from './default-renderers';
 import { color, spacing } from './theme';
 import { parseMarkdown } from './parse';
 import { astToReact } from './ast-to-react';
