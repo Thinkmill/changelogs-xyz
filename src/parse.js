@@ -51,6 +51,8 @@ function parseMarkdown(markdown) {
   return processAST(ast);
 }
 
+let defaultMarkdown = { type: 'all', ast: { type: 'root', children: [] } };
+
 export function getMarkdown(filePath) {
   return fetch(filePath)
     .then(res => res.text())
