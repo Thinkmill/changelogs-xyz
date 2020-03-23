@@ -1,7 +1,7 @@
 /** @jsx jsx */
 
 import { jsx } from '@emotion/core';
-import { useMemo, Fragment } from 'react';
+import { useMemo, Fragment, memo } from 'react';
 import ReactDOM from 'react-dom';
 import GithubSlugger from 'github-slugger';
 import nodeToString from 'mdast-util-to-string';
@@ -50,6 +50,10 @@ function addIdsToHeadingsInAST(ast) {
     node.id = slugger.slug(stringifiedNode);
   });
 }
+
+let Markdown = memo(function Markdown({ ast }) {
+  return astToReact(ast, renderers);
+});
 
 function processAST(ast) {
   addIdsToHeadingsInAST(ast);
@@ -179,7 +183,15 @@ function App() {
               </a>
             </h2>
             <p>{decodeHTMLEntities(packageAtributes.description)}</p>
-            {/* <Toc source={mdSource} /> */}
+            <Toc
+              nodes={
+                markdown.type === 'all'
+                  ? markdown.ast.children
+                  : filterChangelog(markdown.versions, searchValue).flatMap(
+                      x => x.ast.children
+                    )
+              }
+            />
             <Sponsor
               direction="row"
               css={{
@@ -214,13 +226,13 @@ function App() {
               />
             </div>
           ) : null}
-          {markdown.type === 'all'
-            ? astToReact(markdown.ast, renderers)
-            : filterChangelog(markdown.versions, searchValue).map(x => (
-                <Fragment key={x.version}>
-                  {astToReact(x.ast, renderers)}
-                </Fragment>
-              ))}
+          {markdown.type === 'all' ? (
+            <Markdown ast={markdown.ast} />
+          ) : (
+            filterChangelog(markdown.versions, searchValue).map(x => (
+              <Markdown ast={x.ast} key={x.version} />
+            ))
+          )}
         </Main>
       </Layout>
     </Container>
@@ -253,7 +265,7 @@ const Main = ({ isEmpty, isLoading, children, ...props }) => {
   return <MainElement>{content}</MainElement>;
 };
 
-const Toc = ({ source }) => (
+const Toc = ({ nodes }) => (
   <ul
     css={{
       borderBottom: `2px solid ${color.P300}`,
@@ -267,20 +279,19 @@ const Toc = ({ source }) => (
       paddingTop: spacing.medium,
     }}
   >
-    {/* <ReactMarkdown
-      source={source}
-      allowedTypes={['heading', 'text', 'link']}
-      renderers={{ heading: TocItem }}
-    /> */}
+    {nodes.map(node => {
+      if (node.type === 'heading' && node.depth < 4) {
+        return (
+          <TocItem level={node.depth} id={node.id}>
+            {nodeToString(node)}
+          </TocItem>
+        );
+      }
+    })}
   </ul>
 );
 
-const TocItem = ({ level, ...props }) => {
-  console.log(props);
-  if (level > 3) {
-    return null;
-  }
-
+const TocItem = ({ level, id, children }) => {
   const variableStyles = [
     null,
     {
@@ -300,13 +311,12 @@ const TocItem = ({ level, ...props }) => {
     },
   ];
 
-  // const [id, text] = getTextNodes(props);
-  // const href = `#${id}`;
+  const href = `#${id}`;
 
   return (
     <li>
       <a
-        // href={href}
+        href={href}
         css={{
           color: color.P50,
           display: 'block',
@@ -321,7 +331,7 @@ const TocItem = ({ level, ...props }) => {
           },
         }}
       >
-        {/* {text} */}
+        {children}
       </a>
     </li>
   );
