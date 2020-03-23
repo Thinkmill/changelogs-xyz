@@ -72,7 +72,6 @@ function getNodeProps(node, renderer, parent, index, renderers) {
       props.inline = true;
       break;
     case 'link':
-      console.log(node);
       Object.assign(props, {
         title: node.title || undefined,
         href: node.url,
@@ -86,7 +85,6 @@ function getNodeProps(node, renderer, parent, index, renderers) {
       });
       break;
     case 'linkReference':
-      console.log(node);
       Object.assign(props, {
         href: node.href,
       });

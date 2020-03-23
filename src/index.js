@@ -15,7 +15,6 @@ import * as markdownRenderers from './markdown-renderers';
 import { color, spacing } from './theme';
 import { parseMarkdown } from './parse';
 import { astToReact } from './ast-to-react';
-import defaultRenderers from './default-renderers';
 import {
   decodeHTMLEntities,
   useFilterSearch,
@@ -55,7 +54,6 @@ function processAST(ast) {
   addIdsToHeadingsInAST(ast);
 
   let splitVersions = [];
-  console.log(ast.children);
   for (let node of ast.children) {
     if (node.type === 'heading') {
       let stringifiedNode = nodeToString(node);
