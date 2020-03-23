@@ -1,17 +1,23 @@
 /** @jsx jsx */
 
 import { jsx } from '@emotion/core';
+import { useMemo, Fragment } from 'react';
 import ReactDOM from 'react-dom';
-import ReactMarkdown from 'react-markdown';
+import GithubSlugger from 'github-slugger';
+import nodeToString from 'mdast-util-to-string';
+import visit from 'unist-util-visit';
+import findVersions from 'find-versions';
+import { filterChangelog } from '@untitled-docs/changelog-utils';
 
 import './index.css';
 
 import * as markdownRenderers from './markdown-renderers';
 import { color, spacing } from './theme';
+import { parseMarkdown } from './parse';
+import { astToReact } from './ast-to-react';
+import defaultRenderers from './default-renderers';
 import {
   decodeHTMLEntities,
-  getTextNodes,
-  useFilteredChangelog,
   useFilterSearch,
   useGetChangelog,
   useGetPackageAttributes,
@@ -33,6 +39,48 @@ import { Autocomplete } from './components/Autocomplete';
 import { EmptyState } from './components/EmptyState';
 import { ErrorMessage } from './components/ErrorMessage';
 import { Loading } from './components/Loading';
+
+let renderers = { ...defaultRenderers, ...markdownRenderers };
+
+function addIdsToHeadingsInAST(ast) {
+  let slugger = new GithubSlugger();
+
+  visit(ast, 'heading', node => {
+    let stringifiedNode = nodeToString(node);
+    node.id = slugger.slug(stringifiedNode);
+  });
+}
+
+function processAST(ast) {
+  addIdsToHeadingsInAST(ast);
+
+  let splitVersions = [];
+  console.log(ast.children);
+  for (let node of ast.children) {
+    if (node.type === 'heading') {
+      let stringifiedNode = nodeToString(node);
+      let versions = findVersions(stringifiedNode);
+      if (versions.length === 1) {
+        let version = versions[0];
+        splitVersions.push({
+          ast: { type: 'root', children: [{ ...node, depth: 2 }] },
+          version,
+        });
+        continue;
+      }
+    }
+    let currentVersion = splitVersions[splitVersions.length - 1];
+    if (currentVersion) {
+      currentVersion.ast.children.push(node);
+    }
+  }
+
+  if (splitVersions.length) {
+    return { type: 'split', versions: splitVersions };
+  }
+
+  return { type: 'all', ast };
+}
 
 const onSearchSubmit = value => {
   if (!value.changelogFilename) {
@@ -58,18 +106,11 @@ function App() {
     noChangelogFilename
   );
 
-  const {
-    canDivideChangelog,
-    // splitChangelog,
-    filteredChangelog,
-  } = useFilteredChangelog(changelog, searchValue);
-
   const combinedLoading = fetchingPackageAttributes || isLoading;
-  // We have done it this way to make the links in the sidebar work - not sure how we can make this more performant though
-  const mdSource =
-    searchValue && canDivideChangelog
-      ? filteredChangelog.map(({ content }) => content).join('')
-      : changelog;
+
+  let markdown = useMemo(() => processAST(parseMarkdown(changelog)), [
+    changelog,
+  ]);
 
   if (!packageName) {
     return (
@@ -139,7 +180,7 @@ function App() {
               </a>
             </h2>
             <p>{decodeHTMLEntities(packageAtributes.description)}</p>
-            <Toc source={mdSource} />
+            {/* <Toc source={mdSource} /> */}
             <Sponsor
               direction="row"
               css={{
@@ -174,8 +215,13 @@ function App() {
               />
             </div>
           ) : null}
-
-          <ReactMarkdown source={mdSource} renderers={markdownRenderers} />
+          {markdown.type === 'all'
+            ? astToReact(markdown.ast, renderers)
+            : filterChangelog(markdown.versions, searchValue).map(x => (
+                <Fragment key={x.version}>
+                  {astToReact(x.ast, renderers)}
+                </Fragment>
+              ))}
         </Main>
       </Layout>
     </Container>
@@ -222,15 +268,16 @@ const Toc = ({ source }) => (
       paddingTop: spacing.medium,
     }}
   >
-    <ReactMarkdown
+    {/* <ReactMarkdown
       source={source}
       allowedTypes={['heading', 'text', 'link']}
       renderers={{ heading: TocItem }}
-    />
+    /> */}
   </ul>
 );
 
 const TocItem = ({ level, ...props }) => {
+  console.log(props);
   if (level > 3) {
     return null;
   }
@@ -254,13 +301,13 @@ const TocItem = ({ level, ...props }) => {
     },
   ];
 
-  const [id, text] = getTextNodes(props);
-  const href = `#${id}`;
+  // const [id, text] = getTextNodes(props);
+  // const href = `#${id}`;
 
   return (
     <li>
       <a
-        href={href}
+        // href={href}
         css={{
           color: color.P50,
           display: 'block',
@@ -275,7 +322,7 @@ const TocItem = ({ level, ...props }) => {
           },
         }}
       >
-        {text}
+        {/* {text} */}
       </a>
     </li>
   );

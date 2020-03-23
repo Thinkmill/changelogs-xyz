@@ -5,7 +5,6 @@ import Highlight, { defaultProps } from 'prism-react-renderer';
 import githubTheme from 'prism-react-renderer/themes/github';
 
 import { color } from './theme';
-import { getTextNodes } from './utils';
 
 const mdMax = '@media (max-width: 1023px)';
 const mdMin = '@media (min-width: 1024px)';
@@ -94,9 +93,8 @@ const headingStyles = [
 export const heading = ({ level, ...props }) => {
   const Tag = `h${Math.max(level, 2)}`; // strip h1
   const levelStyles = headingStyles[level];
-  const [id] = getTextNodes(props);
 
-  return <Tag css={levelStyles} id={id} {...props} />;
+  return <Tag css={levelStyles} {...props} />;
 };
 
 // Block Elements
