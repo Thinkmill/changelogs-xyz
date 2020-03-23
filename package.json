@@ -21,7 +21,8 @@
     "react-markdown": "^4.3.1",
     "react-scripts": "3.4.0",
     "unist-util-remove": "^2.0.0",
-    "unist-util-visit": "^2.0.2"
+    "unist-util-visit": "^2.0.2",
+    "workerize-loader": "^1.1.0"
   },
   "scripts": {
     "start": "react-scripts start",

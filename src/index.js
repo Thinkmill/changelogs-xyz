@@ -1,20 +1,16 @@
 /** @jsx jsx */
 
 import { jsx } from '@emotion/core';
-import { useMemo, Fragment, memo } from 'react';
+import { memo } from 'react';
 import ReactDOM from 'react-dom';
-import GithubSlugger from 'github-slugger';
-import nodeToString from 'mdast-util-to-string';
-import visit from 'unist-util-visit';
-import findVersions from 'find-versions';
 import { filterChangelog } from '@untitled-docs/changelog-utils';
+import nodeToString from 'mdast-util-to-string';
 
 import './index.css';
 
 import * as markdownRenderers from './markdown-renderers';
 import defaultRenderers from './default-renderers';
 import { color, spacing } from './theme';
-import { parseMarkdown } from './parse';
 import { astToReact } from './ast-to-react';
 import {
   decodeHTMLEntities,
@@ -42,48 +38,9 @@ import { Loading } from './components/Loading';
 
 let renderers = { ...defaultRenderers, ...markdownRenderers };
 
-function addIdsToHeadingsInAST(ast) {
-  let slugger = new GithubSlugger();
-
-  visit(ast, 'heading', node => {
-    let stringifiedNode = nodeToString(node);
-    node.id = slugger.slug(stringifiedNode);
-  });
-}
-
 let Markdown = memo(function Markdown({ ast }) {
   return astToReact(ast, renderers);
 });
-
-function processAST(ast) {
-  addIdsToHeadingsInAST(ast);
-
-  let splitVersions = [];
-  for (let node of ast.children) {
-    if (node.type === 'heading') {
-      let stringifiedNode = nodeToString(node);
-      let versions = findVersions(stringifiedNode);
-      if (versions.length === 1) {
-        let version = versions[0];
-        splitVersions.push({
-          ast: { type: 'root', children: [{ ...node, depth: 2 }] },
-          version,
-        });
-        continue;
-      }
-    }
-    let currentVersion = splitVersions[splitVersions.length - 1];
-    if (currentVersion) {
-      currentVersion.ast.children.push(node);
-    }
-  }
-
-  if (splitVersions.length) {
-    return { type: 'split', versions: splitVersions };
-  }
-
-  return { type: 'all', ast };
-}
 
 const onSearchSubmit = value => {
   if (!value.changelogFilename) {
@@ -104,16 +61,12 @@ function App() {
     noChangelogFilename,
   } = useGetPackageAttributes(packageName);
 
-  const { changelog, isLoading /* errorMessage */ } = useGetChangelog(
+  const { changelog, isLoading } = useGetChangelog(
     packageAtributes.changelogFilename,
     noChangelogFilename
   );
 
   const combinedLoading = fetchingPackageAttributes || isLoading;
-
-  let markdown = useMemo(() => processAST(parseMarkdown(changelog)), [
-    changelog,
-  ]);
 
   if (!packageName) {
     return (
@@ -185,9 +138,9 @@ function App() {
             <p>{decodeHTMLEntities(packageAtributes.description)}</p>
             <Toc
               nodes={
-                markdown.type === 'all'
-                  ? markdown.ast.children
-                  : filterChangelog(markdown.versions, searchValue).flatMap(
+                changelog.type === 'all'
+                  ? changelog.ast.children
+                  : filterChangelog(changelog.versions, searchValue).flatMap(
                       x => x.ast.children
                     )
               }
@@ -226,10 +179,10 @@ function App() {
               />
             </div>
           ) : null}
-          {markdown.type === 'all' ? (
-            <Markdown ast={markdown.ast} />
+          {changelog.type === 'all' ? (
+            <Markdown ast={changelog.ast} />
           ) : (
-            filterChangelog(markdown.versions, searchValue).map(x => (
+            filterChangelog(changelog.versions, searchValue).map(x => (
               <Markdown ast={x.ast} key={x.version} />
             ))
           )}
@@ -282,7 +235,7 @@ const Toc = ({ nodes }) => (
     {nodes.map(node => {
       if (node.type === 'heading' && node.depth < 4) {
         return (
-          <TocItem level={node.depth} id={node.id}>
+          <TocItem key={node.id} level={node.depth} id={node.id}>
             {nodeToString(node)}
           </TocItem>
         );
