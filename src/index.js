@@ -1,17 +1,19 @@
 /** @jsx jsx */
 
 import { jsx } from '@emotion/core';
+import { memo } from 'react';
 import ReactDOM from 'react-dom';
-import ReactMarkdown from 'react-markdown';
+import { filterChangelog } from '@untitled-docs/changelog-utils';
+import nodeToString from 'mdast-util-to-string';
 
 import './index.css';
 
 import * as markdownRenderers from './markdown-renderers';
+import defaultRenderers from './default-renderers';
 import { color, spacing } from './theme';
+import { astToReact } from './ast-to-react';
 import {
   decodeHTMLEntities,
-  getTextNodes,
-  useFilteredChangelog,
   useFilterSearch,
   useGetChangelog,
   useGetPackageAttributes,
@@ -34,6 +36,12 @@ import { EmptyState } from './components/EmptyState';
 import { ErrorMessage } from './components/ErrorMessage';
 import { Loading } from './components/Loading';
 
+let renderers = { ...defaultRenderers, ...markdownRenderers };
+
+let Markdown = memo(function Markdown({ ast }) {
+  return astToReact(ast, renderers);
+});
+
 const onSearchSubmit = value => {
   if (!value.changelogFilename) {
     return;
@@ -53,23 +61,12 @@ function App() {
     noChangelogFilename,
   } = useGetPackageAttributes(packageName);
 
-  const { changelog, isLoading /* errorMessage */ } = useGetChangelog(
+  const { changelog, isLoading } = useGetChangelog(
     packageAtributes.changelogFilename,
     noChangelogFilename
   );
 
-  const {
-    canDivideChangelog,
-    // splitChangelog,
-    filteredChangelog,
-  } = useFilteredChangelog(changelog, searchValue);
-
   const combinedLoading = fetchingPackageAttributes || isLoading;
-  // We have done it this way to make the links in the sidebar work - not sure how we can make this more performant though
-  const mdSource =
-    searchValue && canDivideChangelog
-      ? filteredChangelog.map(({ content }) => content).join('')
-      : changelog;
 
   if (!packageName) {
     return (
@@ -139,7 +136,15 @@ function App() {
               </a>
             </h2>
             <p>{decodeHTMLEntities(packageAtributes.description)}</p>
-            <Toc source={mdSource} />
+            <Toc
+              nodes={
+                changelog.type === 'all'
+                  ? changelog.ast.children
+                  : filterChangelog(changelog.versions, searchValue).flatMap(
+                      x => x.ast.children
+                    )
+              }
+            />
             <Sponsor
               direction="row"
               css={{
@@ -174,8 +179,13 @@ function App() {
               />
             </div>
           ) : null}
-
-          <ReactMarkdown source={mdSource} renderers={markdownRenderers} />
+          {changelog.type === 'all' ? (
+            <Markdown ast={changelog.ast} />
+          ) : (
+            filterChangelog(changelog.versions, searchValue).map(x => (
+              <Markdown ast={x.ast} key={x.version} />
+            ))
+          )}
         </Main>
       </Layout>
     </Container>
@@ -208,7 +218,7 @@ const Main = ({ isEmpty, isLoading, children, ...props }) => {
   return <MainElement>{content}</MainElement>;
 };
 
-const Toc = ({ source }) => (
+const Toc = ({ nodes }) => (
   <ul
     css={{
       borderBottom: `2px solid ${color.P300}`,
@@ -222,19 +232,19 @@ const Toc = ({ source }) => (
       paddingTop: spacing.medium,
     }}
   >
-    <ReactMarkdown
-      source={source}
-      allowedTypes={['heading', 'text', 'link']}
-      renderers={{ heading: TocItem }}
-    />
+    {nodes.map(node => {
+      if (node.type === 'heading' && node.depth < 4) {
+        return (
+          <TocItem key={node.id} level={node.depth} id={node.id}>
+            {nodeToString(node)}
+          </TocItem>
+        );
+      }
+    })}
   </ul>
 );
 
-const TocItem = ({ level, ...props }) => {
-  if (level > 3) {
-    return null;
-  }
-
+const TocItem = ({ level, id, children }) => {
   const variableStyles = [
     null,
     {
@@ -254,7 +264,6 @@ const TocItem = ({ level, ...props }) => {
     },
   ];
 
-  const [id, text] = getTextNodes(props);
   const href = `#${id}`;
 
   return (
@@ -275,7 +284,7 @@ const TocItem = ({ level, ...props }) => {
           },
         }}
       >
-        {text}
+        {children}
       </a>
     </li>
   );
