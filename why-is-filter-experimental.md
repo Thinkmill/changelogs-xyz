@@ -2,7 +2,7 @@
 
 Hey! Thanks for taking an interest in this project.
 
-The filter method, at the moment, is taken directly from a previous project. It's designed with the output of [changesets][github.com/changesets/changesets/] in mind, that is to say:
+The filter method, at the moment, is taken directly from a previous project. It's designed with the output of [changesets](https://github.com/changesets/changesets/) in mind, that is to say:
 
 ```markdown
 ## 2.0.0
