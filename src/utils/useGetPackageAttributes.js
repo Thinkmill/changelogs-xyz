@@ -1,32 +1,40 @@
 import { useEffect, useState } from 'react';
 
-import { SEARCH_CLIENT, SEARCH_PARAMS } from '../config';
+import { SEARCH_CLIENT } from '../config';
 
 const index = SEARCH_CLIENT.initIndex('npm-search');
 
 export function useGetPackageAttributes(packageName) {
   const [fetchingPackageAttributes, updateLoading] = useState(false);
-  const [noChangelogFilename, setNoChangelogFilename] = useState(false);
+  const [error, setError] = useState(null);
   const [packageAtributes, setPackageAttributes] = useState({
     name: packageName,
   });
 
   useEffect(() => {
     updateLoading(true);
-
-    index.search(packageName, SEARCH_PARAMS).then(({ hits }) => {
-      let match = hits[0];
-
-      if (match) {
+    setError();
+    index
+      .getObject(packageName)
+      .then(match => {
         updateLoading(false);
         setPackageAttributes(match);
 
         if (!match.changelogFilename) {
-          setNoChangelogFilename(true);
+          setError('filenotfound');
         }
-      }
-    });
+      })
+      .catch(({ message }) => {
+        console.log('should get here');
+        updateLoading(false);
+
+        if (message === 'ObjectID does not exist') {
+          setError('packagenotfound');
+        } else {
+          setError('unknown');
+        }
+      });
   }, [packageName]);
 
-  return { fetchingPackageAttributes, packageAtributes, noChangelogFilename };
+  return { fetchingPackageAttributes, packageAtributes, error };
 }

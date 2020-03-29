@@ -1,4 +1,4 @@
-import algoliasearch from 'algoliasearch/lite';
+import algoliasearch from 'algoliasearch';
 
 export const SEARCH_CLIENT = algoliasearch(
   'OFCNCOG2CU',

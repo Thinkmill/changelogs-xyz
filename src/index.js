@@ -58,12 +58,12 @@ function App() {
   const {
     fetchingPackageAttributes,
     packageAtributes,
-    noChangelogFilename,
+    error,
   } = useGetPackageAttributes(packageName);
 
   const { changelog, isLoading } = useGetChangelog(
     packageAtributes.changelogFilename,
-    noChangelogFilename
+    error
   );
 
   const combinedLoading = fetchingPackageAttributes || isLoading;
@@ -135,7 +135,10 @@ function App() {
                 {packageAtributes.name}
               </a>
             </h2>
-            <p>{decodeHTMLEntities(packageAtributes.description)}</p>
+            <p>
+              {packageAtributes.description &&
+                decodeHTMLEntities(packageAtributes.description)}
+            </p>
             <Toc
               nodes={
                 changelog.type === 'all'
@@ -155,17 +158,17 @@ function App() {
           </Meta>
         </Aside>
         <Main isEmpty={!packageName} isLoading={combinedLoading}>
-          {noChangelogFilename && (
+          {error && (
             <div>
               <div css={{ padding: '20px 100px' }}>
                 <img src="/empty-box.svg" alt="Illustration: an empty box" />
               </div>
               <h2 css={{ color: color.N800 }}>Something went wrong...</h2>
-              <ErrorMessage packageName={packageName} type="filenotfound" />
+              <ErrorMessage packageName={packageName} type={error} />
             </div>
           )}
 
-          {changelog ? (
+          {changelog && !error ? (
             <div css={{ marginBottom: spacing.medium }}>
               <HiddenLabel htmlFor="filter-input">Semver filter</HiddenLabel>
               <Input
