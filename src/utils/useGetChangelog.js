@@ -6,17 +6,19 @@ let worker = createWorker();
 
 let defaultMarkdown = { type: 'all', ast: { type: 'root', children: [] } };
 
-export function useGetChangelog(filePath, noChangelogFilename) {
+export function useGetChangelog(filePath, error) {
   const [state, setState] = useState({
     changelog: defaultMarkdown,
     isLoading: true,
   });
 
   useEffect(() => {
-    if (filePath && !noChangelogFilename) {
+    if (filePath && !error) {
       worker.getMarkdown(filePath).then(x => setState(x));
+    } else {
+      setState({ changelog: defaultMarkdown, isLoading: false });
     }
-  }, [filePath, noChangelogFilename]);
+  }, [filePath, error]);
 
   return state;
 }
